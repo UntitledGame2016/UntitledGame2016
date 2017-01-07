@@ -47,12 +47,12 @@ public:
 	}*/
 
 	//bounding test
-	bool collision(const sf::Sprite &obj2) {
+	bool BBcollide(const sf::Sprite &obj2) {
 		return Collision::BoundingBoxTest(heroSprite, obj2);
 	}
 
 	//For Foreign Objects (does not use perfect pixel collision)
-	bool collisionTest(Foreign &object) {
+	bool GBcollide(Foreign &object) {
 		if (delay <= 0) {
 			if (hitbox.getGlobalBounds().intersects(object.getGlobalBounds())) {
 				delay = cooldown;

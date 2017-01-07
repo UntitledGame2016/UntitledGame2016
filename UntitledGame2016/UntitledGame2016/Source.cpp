@@ -39,27 +39,23 @@ int main()
 	//Objects (size, position) 
 
 	Hero p({ 0, 250 }, "sample_spritesheet.png");
-	p.showHitBox();
+	//p.showHitBox();
 	std::vector<Block> blocks;
 	Block b({ 1000, 50 }, { 0, 500 }, "box.png");
-	//Block c({ 50, 50 }, { 300, 350 }, "box.png", 30);
-	blocks.push_back(b);
-	//blocks.push_back(c);
-
+	Block c({ 50, 50 }, { 300, 350 }, "box2.png", 30);
 	Block platform({ 100, 100 }, { 540, 400 }, "box.png");
-	//Block platform1({ 300, 50 }, { 520, 250 });
-	//Block platform2({ 300, 50 }, { 200, 400 });
-	//blocks.push_back(b);
+	blocks.push_back(b);
+	blocks.push_back(c);
 	blocks.push_back(platform);
-	//blocks.push_back(platform1);
-	//blocks.push_back(platform2);
+	b.showHitBox();
+	c.showHitBox();
+	platform.showHitBox();
+	p.showHitBox();
 
 	Foreign missile({ 500, 460 });
 
 	while (window.isOpen()) {
-		//elapsed = clock.restart();
 		bool collisions = false;	//collision?
-		bool move = true;			//can he move?
 
 // -- Events -- 
 		sf::Event event;
@@ -73,6 +69,14 @@ int main()
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && !jumping) {
 			p.move({ 0, jumpSpeed });
 			jumping = true;
+			for (int i = 0; i < blocks.size(); i++) {
+				if (curr != i && blocks[i].colliding(&p)) {
+					std::cout << "Bottom Collision" << std::endl;
+					jumping = false;
+					jumpSpeed = 0;
+					break;
+				}
+			}
 		}
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
@@ -80,8 +84,7 @@ int main()
 			p.move({ moveSpeed, 0 });
 			for (int i = 0; i < blocks.size(); i++) {
 				if (curr != i && blocks[i].colliding(&p)) {
-					std::cout << "hi" << std::endl;
-					move = false;
+					std::cout << "Left Collision" << std::endl;
 					p.move({ -moveSpeed, 0 });
 					break;
 				}
@@ -100,9 +103,8 @@ int main()
 			p.move({ -moveSpeed, 0 });
 			for (int i = 0; i < blocks.size(); i++) {
 				if (curr != i && blocks[i].colliding(&p)) {
-					std::cout << "wut" << std::endl;
+					std::cout << "Right Collision" << std::endl;
 					p.move({ moveSpeed, 0 });
-					move = false;
 					break;
 				}
 			}
@@ -135,12 +137,14 @@ int main()
 
 	//Gravity
 		if (cl.getElapsedTime().asMicroseconds() > 800.0f) {
-
-			// to account for the initial fall
-			if (fall && !jumping && !sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-				if (p.getY() < b.getY()) {
+			if (fall && !jumping && !sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) { //If falling
+				if (p.getY() < blocks[curr].getY()) {
 					fallSpeed += gravity;
 					p.move({ 0, fallSpeed });
+					for (int i = 0; i < blocks.size(); i++) {
+						if (blocks[i].colliding(&p))
+							p.setY(blocks[i].getY());
+					}
 				}
 				else {
 					fallSpeed = 0;
@@ -148,9 +152,7 @@ int main()
 				}
 			}
 			else if (jumping) {
-				// if the hero lands
-				for (int i = 0; i < blocks.size(); i++) {
-					//Hero temp = p;
+				for (int i = 0; i < blocks.size(); i++) { //If landing
 					p.move({ 0, jumpSpeed + gravity });
 					if (blocks[i].colliding(&p)) {
 						p.setY(blocks[i].getY());
@@ -162,9 +164,7 @@ int main()
 					}
 					p.move({ 0, -jumpSpeed - gravity });
 				}
-
-				// if the hero is still in the air
-				if (!collisions) {
+				if (!collisions) { //If still in the air
 					jumpSpeed += gravity;
 					p.move({ 0, jumpSpeed });
 				}
@@ -182,7 +182,7 @@ int main()
 		}*/
 
 		missile.fire();
-		if (p.collisionTest(missile)) {
+		if (p.GBcollide(missile)) {
 			p.takeDamage(5);
 		}
 
@@ -199,7 +199,7 @@ int main()
 		//platform2.draw(window);
 		missile.draw(window);
 		b.draw(window);
-		//c.draw(window);
+		c.draw(window);
 		p.draw(window);
 
 		window.display();

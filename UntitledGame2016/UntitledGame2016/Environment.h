@@ -22,9 +22,10 @@ public:
 
 		Collision::CreateTextureAndBitmask(blockTexture, fileName);
 
+		//block.rotate(angle);
 		block.setSize(size);
 		block.setPosition(newPos);
-		block.setFillColor(sf::Color::Red);
+		block.setFillColor(sf::Color::Transparent);
 	}
 
 	sf::Sprite& getSprite() {
@@ -37,6 +38,11 @@ public:
 
 	void draw(sf::RenderWindow &window) {
 		window.draw(blockSprite);
+		window.draw(block);
+	}
+
+	void showHitBox() {
+		block.setFillColor(sf::Color::Green);
 	}
 
 	bool colliding(Hero *hero) {
@@ -49,11 +55,12 @@ public:
 	int getX() {
 		return block.getPosition().x;
 	}
+
 	sf::Vector2f getSize() {
 		return block.getSize();
 	}
 	int getY() {
-		return block.getPosition().y - 63;
+		return block.getPosition().y - 64; 
 	}
 
 	~Block() {
