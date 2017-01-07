@@ -46,7 +46,7 @@ public:
 		name.setOutlineColor(sf::Color::Black);
 		name.setOutlineThickness(2);
 		name.setStyle(sf::Text::Bold);
-		name.setPosition({ 52, 30 });
+		name.setPosition({ 52, 28 });
 		healthBar.setSize({ health * 3.0f, 15 });
 		healthBar.setPosition({ 50, 50 });
 		healthBar.setFillColor(sf::Color::Red);
@@ -75,9 +75,8 @@ public:
 	void changeHealth(const int x) {
 		if (health > 0 && health + x <= 100)
 			health += x;
-		else
-			if(health < 0)
-				std::cout << "You're dead LUL" << std::endl;
+		if(health <= 0)
+			name.setString("You're dead LUL");
 		healthBar.setSize({ health * 3.0f, 15 });
 		std::cout << "Health: " << health << std::endl;
 	}

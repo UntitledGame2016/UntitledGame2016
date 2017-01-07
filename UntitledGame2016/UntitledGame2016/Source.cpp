@@ -44,20 +44,20 @@ int main()
 
 	std::vector<Block> blocks;
 	Block b({ 1000, 50 }, { 0, 500 }, "box.png");
-	Block c({ 50, 50 }, { 300, 350 }, "box2.png", 30);
-	Block platform({ 100, 100 }, { 540, 400 }, "box.png");
+	Block c({ 50, 50 }, { 300, 350 }, "box2.png");
+	Block platform({ 1000, 50 }, { 540, 400 }, "box.png");
 	blocks.push_back(b);
 	blocks.push_back(c);
 	blocks.push_back(platform);
-	b.showHitBox();
+	/*b.showHitBox();
 	c.showHitBox();
 	platform.showHitBox();
-	p.showHitBox();
+	p.showHitBox();*/
 
 	std::vector<Foreign *> missile;
 	std::vector<Foreign *> potions;
 	std::vector<Foreign *> usedPotions;
-	missile.push_back(new Foreign({ 500, 460 }, "dud.png"));
+	missile.push_back(new Foreign({ 600, 460 }, "mob1.png"));
 	potions.push_back(new Foreign({ 300 , 430 }, "potion.png"));
 	potions.push_back(new Foreign({ 350 , 430 }, "potion.png"));
 	potions.push_back(new Foreign({ 400 , 430 }, "potion.png"));
@@ -88,7 +88,7 @@ int main()
 			curr = -1;
 		}
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
 			p.setTextureRect(sf::IntRect(animation * 64, 0, 64, 64));
 			p.move({ moveSpeed, 0 });
 			for (int i = 0; i < blocks.size(); i++) {
@@ -107,7 +107,8 @@ int main()
 				jumping = true;
 			}
 		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
+
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
 			p.setTextureRect(sf::IntRect(animation * 64, 64, 64, 64));
 			p.move({ -moveSpeed, 0 });
 			for (int i = 0; i < blocks.size(); i++) {
@@ -164,7 +165,7 @@ int main()
 					int tempSpeed = jumpSpeed;
 					p.move({ 0, jumpSpeed + gravity });
 					if (blocks[i].colliding(&p)) {
-						// if the hero is colliding but the bottom of the hero is still below the platform
+						// If Hero collides but the bottom of the hero is still below the platform
 						if (p.getY() > blocks[i].getY() + blocks[i].getSize().y) {
 							// sets the top of the hero to bottom of platform
 							p.setY(blocks[i].getY() + blocks[i].getSize().y + 64);
@@ -210,8 +211,7 @@ int main()
 		for (size_t index = 0; index < potions.size(); index++) {
 			if (p.GBcollide(*potions[index])) {
 				p.changeHealth(50);
-				if (potions.size() < 1)
-					potions.push_back(new Foreign({ 50, 50 }, "potion.png"));
+				potions[index]->disappear();
 			}
 		}
 		
@@ -225,18 +225,15 @@ int main()
 		window.clear();
 		window.draw(background);
 		platform.draw(window);
-		//platform1.draw(window);
-		//platform2.draw(window);
-		for (size_t index = 0; index < missile.size(); index++) {
-			missile[index]->draw(window);
-		}
 		for (size_t index = 0; index < potions.size(); index++) {
 			potions[index]->draw(window);
+		}
+		for (size_t index = 0; index < missile.size(); index++) {
+			missile[index]->draw(window);
 		}
 		b.draw(window);
 		c.draw(window);
 		p.draw(window);
-
 		window.display();
 	}
 

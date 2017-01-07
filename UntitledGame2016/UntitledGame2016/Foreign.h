@@ -31,6 +31,11 @@ public:
 		return objectSprite;
 	}
 
+	void disappear() { //Temporary solution to object manipulation
+		hitbox.setPosition({ 5000, 5000 });
+		objectSprite.setPosition({ 5000, 5000 });
+	}
+
 	void fire() {
 		hitbox.move({ -1.0f, 0 });
 		objectSprite.move({ -1.0f, 0 });
@@ -38,7 +43,7 @@ public:
 
 	void draw(sf::RenderTarget &window) {
 		window.draw(objectSprite);
-		window.draw(hitbox);
+		//window.draw(hitbox);
 	}
 };
 
