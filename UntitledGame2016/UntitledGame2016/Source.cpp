@@ -25,7 +25,6 @@ int main()
 	sf::Time elapsed;
 	bool fall = true;
 	bool jumping = false;
-	bool released = true; // to deal with spammable jumps
 	bool fallRight = false;
 	bool fallLeft = false;
 	int animation = 0;
@@ -37,9 +36,12 @@ int main()
 	const float moveSpeed = 3.5; //DONT FUCKING CHANGE THIS
 
 	//Objects (size, position) 
+	sf::RectangleShape background;
+	background.setFillColor(sf::Color::Yellow);
+	background.setSize({ height, width });
 
 	Hero p({ 0, 250 }, "sample_spritesheet.png");
-	//p.showHitBox();
+
 	std::vector<Block> blocks;
 	Block b({ 1000, 50 }, { 0, 500 }, "box.png");
 	Block c({ 50, 50 }, { 300, 350 }, "box2.png", 30);
@@ -52,7 +54,13 @@ int main()
 	platform.showHitBox();
 	p.showHitBox();
 
-	Foreign missile({ 500, 460 });
+	std::vector<Foreign *> missile;
+	std::vector<Foreign *> potions;
+	std::vector<Foreign *> usedPotions;
+	missile.push_back(new Foreign({ 500, 460 }, "dud.png"));
+	potions.push_back(new Foreign({ 300 , 430 }, "potion.png"));
+	potions.push_back(new Foreign({ 350 , 430 }, "potion.png"));
+	potions.push_back(new Foreign({ 400 , 430 }, "potion.png"));
 
 	while (window.isOpen()) {
 		bool collisions = false;	//collision?
@@ -77,6 +85,7 @@ int main()
 					break;
 				}
 			}
+			curr = -1;
 		}
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
@@ -125,7 +134,6 @@ int main()
 		}
 
 // -- Logic --
-		
 	//Animation
 		delayCounter++;
 		if (delayCounter % 5 == 0) {
@@ -153,16 +161,27 @@ int main()
 			}
 			else if (jumping) {
 				for (int i = 0; i < blocks.size(); i++) { //If landing
+					int tempSpeed = jumpSpeed;
 					p.move({ 0, jumpSpeed + gravity });
 					if (blocks[i].colliding(&p)) {
-						p.setY(blocks[i].getY());
-						jumpSpeed = -15;
-						jumping = false, fallLeft = false, fallRight = false;
-						curr = i;
-						collisions = true;
-						break;
+						// if the hero is colliding but the bottom of the hero is still below the platform
+						if (p.getY() > blocks[i].getY() + blocks[i].getSize().y) {
+							// sets the top of the hero to bottom of platform
+							p.setY(blocks[i].getY() + blocks[i].getSize().y + 64);
+							collisions = true;
+							jumpSpeed = 0;
+							break;
+						}
+						else {
+							p.setY(blocks[i].getY());
+							jumpSpeed = -15;
+							jumping = false, fallLeft = false, fallRight = false;
+							curr = i;
+							collisions = true;
+							break;
+						}
 					}
-					p.move({ 0, -jumpSpeed - gravity });
+					p.move({ 0, -tempSpeed - gravity });
 				}
 				if (!collisions) { //If still in the air
 					jumpSpeed += gravity;
@@ -181,10 +200,21 @@ int main()
 			std::cout << "Bounding box!" << delayCounter << " " << curr << " " << collisions << std::endl;
 		}*/
 
-		missile.fire();
-		if (p.GBcollide(missile)) {
-			p.takeDamage(5);
+		for (size_t index = 0; index < missile.size(); index++) {
+			missile[index]->fire();
+			if (p.GBcollide(*missile[index])) {
+				p.changeHealth(-50);
+			}
 		}
+
+		for (size_t index = 0; index < potions.size(); index++) {
+			if (p.GBcollide(*potions[index])) {
+				p.changeHealth(50);
+				if (potions.size() < 1)
+					potions.push_back(new Foreign({ 50, 50 }, "potion.png"));
+			}
+		}
+		
 
 	//Clock
 		p.update(cl.getElapsedTime().asMicroseconds());
@@ -193,11 +223,16 @@ int main()
 
 // -- Draw --
 		window.clear();
-
+		window.draw(background);
 		platform.draw(window);
 		//platform1.draw(window);
 		//platform2.draw(window);
-		missile.draw(window);
+		for (size_t index = 0; index < missile.size(); index++) {
+			missile[index]->draw(window);
+		}
+		for (size_t index = 0; index < potions.size(); index++) {
+			potions[index]->draw(window);
+		}
 		b.draw(window);
 		c.draw(window);
 		p.draw(window);

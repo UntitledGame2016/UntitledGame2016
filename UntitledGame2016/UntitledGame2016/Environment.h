@@ -20,8 +20,6 @@ public:
 		blockSprite.setTexture(blockTexture);
 		//blockSprite.setTextureRect(sf::IntRect(0, 0, size.x, size.y));
 
-		Collision::CreateTextureAndBitmask(blockTexture, fileName);
-
 		//block.rotate(angle);
 		block.setSize(size);
 		block.setPosition(newPos);

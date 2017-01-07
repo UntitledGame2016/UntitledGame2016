@@ -8,10 +8,14 @@
 #include "TextureManager.h"
 
 class Hero {
+	sf::Text name;
+	sf::Font nameFont;
+	sf::RectangleShape heroInterface;
+	sf::RectangleShape healthBar;
 	TextureManager textures;
 	sf::Texture heroTexture;
 	sf::Sprite heroSprite;
-	int health = 100;	
+	int health = 100;
 public:
 	sf::RectangleShape hitbox; //hitbox
 	const float cooldown = 500000;
@@ -28,23 +32,59 @@ public:
 		hitbox.setSize({36, 63});
 		hitbox.setPosition(newPos.x + 14, newPos.y + 1);
 		hitbox.setFillColor(sf::Color::Transparent);
+
+		heroInterface.setSize({ 304, 19 });
+		heroInterface.setPosition({ 48, 48 });
+		heroInterface.setFillColor(sf::Color::Black);
+		if (!nameFont.loadFromFile("fonts/arial.ttf")) {
+			std::cout << "Font not loaded" << std::endl;
+		}
+		name.setString("Hero Desu");
+		name.setCharacterSize(18);
+		name.setFont(nameFont);
+		name.setFillColor(sf::Color::White);
+		name.setOutlineColor(sf::Color::Black);
+		name.setOutlineThickness(2);
+		name.setStyle(sf::Text::Bold);
+		name.setPosition({ 52, 30 });
+		healthBar.setSize({ health * 3.0f, 15 });
+		healthBar.setPosition({ 50, 50 });
+		healthBar.setFillColor(sf::Color::Red);
 	}
 	
+	void draw(sf::RenderWindow &window) {
+		window.draw(heroInterface);
+		window.draw(healthBar);
+		window.draw(heroSprite);
+		window.draw(name);
+		window.draw(hitbox);
+	}
+
+	void move(sf::Vector2f distance) {
+		if (health > 0) {
+			heroSprite.move(distance);
+			hitbox.move(distance);
+		}
+	}
+
+	void update(float time) {
+		//std::cout << delay << std::endl;
+		delay -= time;
+	}
+
+	void changeHealth(const int x) {
+		if (health > 0 && health + x <= 100)
+			health += x;
+		else
+			if(health < 0)
+				std::cout << "You're dead LUL" << std::endl;
+		healthBar.setSize({ health * 3.0f, 15 });
+		std::cout << "Health: " << health << std::endl;
+	}
+
 	sf::Sprite getSprite() {
 		return heroSprite;
 	}
-
-	//pixel perfect
-	/*bool collisionTest(const sf::Sprite &obj2) {
-		if (delay <= 0) {
-			if (Collision::PixelPerfectTest(heroSprite, obj2)) {
-				delay = cooldown;
-				return true;
-			}
-			return false;
-		}
-		return false;
-	}*/
 
 	//bounding test
 	bool BBcollide(const sf::Sprite &obj2) {
@@ -74,30 +114,8 @@ public:
 		hitbox.setFillColor(sf::Color::Blue);
 	}
 
-	void takeDamage(const int x) {
-		health -= x;
-		std::cout << "Health: " << health << std::endl;
-	}
-
 	void setTextureRect(sf::IntRect &newRect) {
 		heroSprite.setTextureRect(newRect);
-	}
-
-	void draw(sf::RenderWindow &window) {
-		window.draw(heroSprite);
-		window.draw(hitbox);
-	}
-
-	void move(sf::Vector2f distance) {
-		if (health > 0) {
-			heroSprite.move(distance);
-			hitbox.move(distance);
-		}
-	}
-
-	void update(float time) {
-		//std::cout << delay << std::endl;
-		delay -= time;
 	}
 
 	int getY() {
