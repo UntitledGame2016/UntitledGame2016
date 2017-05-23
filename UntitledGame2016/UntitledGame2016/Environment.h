@@ -1,4 +1,3 @@
-#pragma once
 #include <iostream>
 #include <SFML\Graphics.hpp>
 #include "Collision.h"

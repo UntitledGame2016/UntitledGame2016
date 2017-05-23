@@ -9,20 +9,24 @@
 
 using namespace Collision;
 
-int main()
-{
+int main(){
 	//Render Window
 	float height = 1080;
 	float width = 540;
-	sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+	sf::ContextSettings settings;
 	sf::RenderWindow window;
-	window.create(sf::VideoMode(height, width, desktop.bitsPerPixel), "Untitled Game");
+	sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+	settings.antialiasingLevel = 8;
+	window.create(sf::VideoMode(height, width, desktop.bitsPerPixel), "Untitled Game", 
+		sf::Style::Default, settings);
 	window.setFramerateLimit(60);
 
 	//Logic variables
 	sf::Clock cl;
 	sf::Clock clock;
 	sf::Time elapsed;
+
+	bool attacking = false;
 	bool fall = true;
 	bool jumping = false;
 	bool fallRight = false;
@@ -54,14 +58,17 @@ int main()
 	platform.showHitBox();
 	p.showHitBox();*/
 
-	std::vector<Foreign *> missile;
+	std::vector<Foreign *> missiles;
 	std::vector<Foreign *> potions;
-	std::vector<Foreign *> usedPotions;
-	missile.push_back(new Foreign({ 600, 460 }, "mob1.png"));
-	potions.push_back(new Foreign({ 300 , 430 }, "potion.png"));
-	potions.push_back(new Foreign({ 350 , 430 }, "potion.png"));
+	std::vector<Foreign *> weapons;
+	std::vector<Foreign *> bullets;
+	int bullet_index = -1;
+	missiles.push_back(new Foreign({ 600, 460 }, "mob1.png"));
 	potions.push_back(new Foreign({ 400 , 430 }, "potion.png"));
-
+	potions.push_back(new Foreign({ 450 , 430 }, "potion.png"));
+	potions.push_back(new Foreign({ 500 , 430 }, "potion.png"));
+	weapons.push_back(new Foreign({ 500, 380 }, "poison.png"));
+	
 	while (window.isOpen()) {
 		bool collisions = false;	//collision?
 
@@ -128,8 +135,17 @@ int main()
 			}
 		}
 
-		while (window.pollEvent(event))
-		{
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+			attacking = true;
+			bullets.push_back(new Foreign({ p.getPosition().x, p.getPosition().y }, "mob1.png"));
+			bullet_index++;
+			std::cout << bullets.size() << std::endl;
+		}
+
+		if (attacking) 
+			bullets[bullet_index]->fire(5.0f);
+
+		while (window.pollEvent(event)){
 			if (event.type == sf::Event::Closed)
 				window.close();
 		}
@@ -200,21 +216,21 @@ int main()
 		if (p.collision(b.getSprite())) {
 			std::cout << "Bounding box!" << delayCounter << " " << curr << " " << collisions << std::endl;
 		}*/
-
-		for (size_t index = 0; index < missile.size(); index++) {
-			missile[index]->fire();
-			if (p.GBcollide(*missile[index])) {
-				p.changeHealth(-50);
-			}
+		for (Foreign * missile : missiles) {
+			missile->fire(-2.0f);
+			if (p.GBcollide(*missile))
+				p.changeHealth(-25);
 		}
-
-		for (size_t index = 0; index < potions.size(); index++) {
-			if (p.GBcollide(*potions[index])) {
-				p.changeHealth(50);
-				potions[index]->disappear();
+		for (Foreign * potion : potions)
+			if (p.PPcollide(*potion)) {
+				p.changeHealth(15);
+				potion->disappear();
 			}
-		}
-		
+		for (Foreign * weapon : weapons)
+			if (p.PPcollide(*weapon)) {
+				p.changeHealth(-30);
+				weapon->disappear();
+			}
 
 	//Clock
 		p.update(cl.getElapsedTime().asMicroseconds());
@@ -225,17 +241,18 @@ int main()
 		window.clear();
 		window.draw(background);
 		platform.draw(window);
-		for (size_t index = 0; index < potions.size(); index++) {
-			potions[index]->draw(window);
-		}
-		for (size_t index = 0; index < missile.size(); index++) {
-			missile[index]->draw(window);
-		}
+		for (Foreign * missile : missiles)
+			missile->draw(window);
+		for (Foreign * potion : potions)
+			potion->draw(window);
+		for (Foreign * weapon : weapons) 
+			weapon->draw(window);
+		for (Foreign * bullet : bullets)
+			bullet->draw(window);
 		b.draw(window);
 		c.draw(window);
 		p.draw(window);
 		window.display();
 	}
-
 	return 0;
 }

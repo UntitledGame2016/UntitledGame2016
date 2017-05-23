@@ -14,13 +14,22 @@ public:
 	Foreign(sf::Vector2f newPos, const std::string &fileName) {
 		hitbox.setSize({ 15, 15});
 		hitbox.setPosition(newPos);
-		hitbox.setFillColor(sf::Color::Green);
+		hitbox.setFillColor(sf::Color::Transparent);
 
 		textures.addTexture(fileName);
 		objectTexture = textures.loadTexture(fileName);
 		objectSprite.setPosition({ newPos.x - (objectTexture.getSize().x - hitbox.getSize().x)/2,
 			newPos.y - (objectTexture.getSize().y - hitbox.getSize().y) / 2 });
 		objectSprite.setTexture(objectTexture);
+	}
+
+	void showHitBox() {
+		hitbox.setFillColor(sf::Color::Green);
+	}
+
+	void setPosition(sf::Vector2f position) {
+		hitbox.setPosition({ position.x, position.y });
+		objectSprite.setPosition({ position.x, position.y });
 	}
 
 	sf::FloatRect getGlobalBounds() {
@@ -36,14 +45,14 @@ public:
 		objectSprite.setPosition({ 5000, 5000 });
 	}
 
-	void fire() {
-		hitbox.move({ -1.0f, 0 });
-		objectSprite.move({ -1.0f, 0 });
+	void fire(const float velocity) {
+		hitbox.move({ velocity, 0 });
+		objectSprite.move({ velocity, 0 });
 	}
 
 	void draw(sf::RenderTarget &window) {
 		window.draw(objectSprite);
-		//window.draw(hitbox);
+		window.draw(hitbox);
 	}
 };
 
