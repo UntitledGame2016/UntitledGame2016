@@ -18,9 +18,6 @@
     <ClInclude Include="Environment.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Foreign.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="Hero.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -28,6 +25,15 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Collision.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Mobs.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Weapons.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -39,6 +45,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Collision.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Weapons.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Hero.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Environment.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Mobs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Animation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

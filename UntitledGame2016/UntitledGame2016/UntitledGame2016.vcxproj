@@ -19,16 +19,23 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Animation.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="Environment.h" />
-    <ClInclude Include="Foreign.h" />
+    <ClInclude Include="Weapons.h" />
     <ClInclude Include="Hero.h" />
+    <ClInclude Include="Mobs.h" />
     <ClInclude Include="TextureManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Animation.cpp" />
     <ClCompile Include="Collision.cpp" />
+    <ClCompile Include="Environment.cpp" />
+    <ClCompile Include="Hero.cpp" />
+    <ClCompile Include="Mobs.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="TextureManager.cpp" />
+    <ClCompile Include="Weapons.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C323B79A-1DA6-45AF-AC4C-A48463D11EF5}</ProjectGuid>
