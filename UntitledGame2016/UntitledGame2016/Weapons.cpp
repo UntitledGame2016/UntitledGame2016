@@ -16,8 +16,10 @@ Bullet::Bullet(TextureManager &textures, sf::IntRect bulletTexture) {
 	//Fix textures
 }
 void Bullet::draw(sf::RenderWindow& window) {
-	window.draw(hitbox);
-	window.draw(bulletSprite);
+	if (fired) {
+		window.draw(hitbox);
+		window.draw(bulletSprite);
+	}
 }
 void Bullet::move(sf::Vector2f velocity) {
 	hitbox.move(velocity);
@@ -134,7 +136,7 @@ void Ranged::attack(sf::Vector2f pos, bool faceRight) {
 		return;
 }
 
-void Ranged::update(float time, std::vector<Mob *> &mobs) {
+void Ranged::update(float time, Mob * mob) {
 	delay -= time;
 	std::ostringstream temp;
 	temp << durability;
@@ -143,8 +145,10 @@ void Ranged::update(float time, std::vector<Mob *> &mobs) {
 	for (int i = bullets.size() - 1; i > -1; i--)
 		if (bullets[i]->isready()) {
 			bullets[i]->move({ bullets[i]->getvel(), 0 });
-			if (bullets[i]->collide(mobs[0]->getSprite())) 
-				mobs[0]->changeHealth(-5);
+			if (bullets[i]->collide(mob->getSprite()) && !mob->dead()) {
+				bullets[i]->toggle(false);
+				mob->changeHealth(-5);
+			}
 			if (bullets[i]->getPosition().x >= 1080 || bullets[i]->getPosition().x + bullets[i]->getHBSize().x <= 0)
 				bullets[i]->toggle(false);
 		}

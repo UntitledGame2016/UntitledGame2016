@@ -48,7 +48,7 @@ public:
 	Weapon();
 	Weapon(std::string name, int durability, sf::IntRect texture = { 0, 0, 64, 64 });
 	virtual void attack(sf::Vector2f pos, bool faceRight) {};
-	virtual void update(float time, std::vector<Mob *> &mobs) {};
+	virtual void update(float time, Mob * mob) {};
 	virtual void draw(sf::RenderWindow &window);
 	virtual void drawBullets(sf::RenderWindow &window) {};
 	virtual void reload(int newBullets) {};
@@ -64,11 +64,11 @@ class Ranged : public Weapon{
 
 	sf::Text clipText;
 public:
-	Ranged(std::string name, int durability, sf::IntRect textureRect, const float firerate = 300000);
+	Ranged(std::string name, int durability, sf::IntRect textureRect, const float firerate = 0.45f);
 	void draw(sf::RenderWindow &window);
 	void drawBullets(sf::RenderWindow &window);
 	void attack(sf::Vector2f pos, bool faceRight);
-	void update(float time, std::vector<Mob *> &mobs);
+	void update(float time, Mob * mob);
 	void reload(int newBullets);
 };
 

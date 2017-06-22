@@ -13,6 +13,7 @@ class Block {
 	sf::Sprite blockSprite;
 
 	std::vector<std::pair<sf::Vector2u, float>> * script; //coordinate vs speed
+	int scriptIndex;
 public:
 	bool moving;
 	Block(sf::Vector2f size, sf::Vector2f newPos, const std::string & fileName, std::vector<std::pair<sf::Vector2u, float>> * scr);

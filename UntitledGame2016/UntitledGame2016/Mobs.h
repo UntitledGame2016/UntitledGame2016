@@ -12,9 +12,6 @@ class Mob {
 	sf::RectangleShape healthbar;
 	sf::Texture texture;
 
-	float cooldown = 300000;
-	float delay = 0;
-
 	float barLength;
 	float health;
 	float maxHealth;
@@ -26,6 +23,7 @@ public:
 	sf::Sprite getSprite() { return sprite; }
 	void changeHealth(const int hp);
 	void update(float time);
+	bool dead();
 };
 
 #endif

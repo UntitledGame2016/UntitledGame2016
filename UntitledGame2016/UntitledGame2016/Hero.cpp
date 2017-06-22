@@ -46,6 +46,11 @@ Hero::Hero(sf::Vector2f newPos) : row(0){
 		healthCircle[i].color = sf::Color::Red;
 		angle += pi / (maxhp / 2);
 	}
+
+	weapons.push_back(new Ranged("Gun", 10, { 0, 0, 64, 64 }));
+	weapons.push_back(new Ranged("Assault Rifle", 50, { 0, 0, 64, 64 }, 0.2f));
+	weapons.push_back(new Ranged("Machine Gun", 200, { 0, 0, 64,64 }, 0.1f));
+	weapon = weapons[0];
 }
 
 void Hero::draw(sf::RenderWindow &window) {
@@ -55,9 +60,12 @@ void Hero::draw(sf::RenderWindow &window) {
 	window.draw(healthCircle);
 	window.draw(healthOverlay);
 	window.draw(deathMessage);
+	weapon->draw(window);
+	for(Weapon * w: weapons)
+		w->drawBullets(window);
 }
 
-void Hero::move(sf::Vector2f distance, float elapsed) {
+void Hero::move(sf::Vector2f distance) {
 	heroSprite.move(distance);
 	hitbox.move(distance);
 	if (distance.x > 0) 
@@ -70,12 +78,12 @@ bool Hero::face() {
 	return faceRight;
 }
 
-void Hero::update(float time, std::vector<Block *> blocks) {
+void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &mobs) {
 	bool collisions = false;
 
 	//Keys
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && !jumping) {
-		move({ 0, jumpSpeed }, time);
+		move({ 0, jumpSpeed });
 		jumping = true;
 		for (size_t i = 0; i < blocks.size(); i++) 
 			if (curr != i && blocks[i]->colliding(hitbox)) {
@@ -88,9 +96,9 @@ void Hero::update(float time, std::vector<Block *> blocks) {
 	}
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-		move({ moveSpeed, 0 }, time);
+		move({ moveSpeed, 0 });
 		if (fallLeft) {
-			move({ -moveSpeed, 0 }, time);
+			move({ -moveSpeed, 0 });
 		}
 		if (!jumping && !blocks[curr]->colliding(hitbox)) {
 			fallRight = true;
@@ -100,16 +108,16 @@ void Hero::update(float time, std::vector<Block *> blocks) {
 		for (size_t i = 0; i < blocks.size(); i++) {
 			if (curr != i && blocks[i]->colliding(hitbox)) {
 				std::cout << "Left Collision" << std::endl;
-				move({ -moveSpeed, 0 }, time);
+				move({ -moveSpeed, 0 });
 				break;
 			}
 		}
 	}
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-		move({ -moveSpeed, 0 }, time);
+		move({ -moveSpeed, 0 });
 		if (fallRight) {
-			move({ moveSpeed, 0 }, time);
+			move({ moveSpeed, 0 });
 		}
 		if (!jumping && !blocks[curr]->colliding(hitbox)) {
 			fallLeft = true;
@@ -119,7 +127,7 @@ void Hero::update(float time, std::vector<Block *> blocks) {
 		for (size_t i = 0; i < blocks.size(); i++) {
 			if (curr != i && blocks[i]->colliding(hitbox)) {
 				std::cout << "Right Collision" << std::endl;
-				move({ moveSpeed, 0 }, time);
+				move({ moveSpeed, 0 });
 				break;
 			}
 		}
@@ -128,7 +136,7 @@ void Hero::update(float time, std::vector<Block *> blocks) {
 	if (fall && !jumping && !sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) { //If falling
 		if (getY() < blocks[curr]->getY()) {
 			fallSpeed += gravity;
-			move({ 0, fallSpeed }, time);
+			move({ 0, fallSpeed });
 			for (size_t i = 0; i < blocks.size(); i++)
 				if (blocks[i]->colliding(hitbox))
 					setY(blocks[i]->getY());
@@ -141,7 +149,7 @@ void Hero::update(float time, std::vector<Block *> blocks) {
 	else if (jumping) {
 		for (size_t i = 0; i < blocks.size(); i++) { //If landing
 			float tempSpeed = jumpSpeed;
-			move({ 0, jumpSpeed + gravity }, time);
+			move({ 0, jumpSpeed + gravity });
 			if (blocks[i]->colliding(hitbox)) {
 				// If Hero collides but the bottom of the hero is still below the platform
 				if (heroSprite.getPosition().y > blocks[i]->getY() + blocks[i]->getSize().y) {
@@ -160,16 +168,40 @@ void Hero::update(float time, std::vector<Block *> blocks) {
 					break;
 				}
 			}
-			move({ 0, -tempSpeed - gravity }, time);
+			move({ 0, -tempSpeed - gravity });
 		}
 		if (!collisions) { //If still in the air
 			jumpSpeed += gravity;
-			move({ 0, jumpSpeed }, time);
+			move({ 0, jumpSpeed });
 		}
 	}
 
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+		weapon->attack(getPosition(), faceRight);
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1))
+		wield(weapons[0]);
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2))
+		wield(weapons[1]);
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3))
+		wield(weapons[2]);
+
+	for (Mob * mob : mobs)
+		for(Weapon * w: weapons)
+			w->update(time, mob);
+
 	animation->update(row, time, faceRight);
 	heroSprite.setTextureRect(animation->uvRect);
+}
+
+void Hero::wield(Weapon * w) {
+	weapon = w;
+}
+
+Weapon& Hero::getWeapon() {
+	return *weapon;
 }
 
 void Hero::changeHealth(const int x) { //HUD

@@ -9,6 +9,7 @@ Block::Block(sf::Vector2f size, sf::Vector2f newPos, const std::string& fileName
 	//blockSprite.setTextureRect(sf::IntRect(0, 0, size.x, size.y));
 
 	script = scr;
+	scriptIndex = 0;
 	moving = true;
 
 	block.setSize(size);
@@ -32,27 +33,32 @@ Block::Block(sf::Vector2f size, sf::Vector2f newPos, const std::string& fileName
 }
 
 void Block::update(float deltaTime) {
-	int index = 0;
-	float x = (*script)[index].second;
-	float y = (*script)[index].second;
+	if(scriptIndex < script->size()){
+		float x = (*script)[scriptIndex].second;
+		float y = (*script)[scriptIndex].second;
 
-	if(index < script->size()){
-		if ((*script)[index].first.x > block.getPosition().x)
-			x = abs(x);
-		else if ((*script)[index].first.x < block.getPosition().x)
-			x = -abs(x);
-		if ((*script)[index].first.y > block.getPosition().y)
-			y = abs(y);
-		else if ((*script)[index].first.y < block.getPosition().y)
-			y = -abs(y);
+		if ((*script)[scriptIndex].first.x > block.getPosition().x)
+			x = fabs(x);
+		else if ((*script)[scriptIndex].first.x < block.getPosition().x)
+			x = -fabs(x);
+		else
+			x = 0;
+
+		if ((*script)[scriptIndex].first.y > block.getPosition().y)
+			y = fabs(y);
+		else if ((*script)[scriptIndex].first.y < block.getPosition().y)
+			y = -fabs(y);
+		else
+			y = 0;
 
 		move({ x, y });
-		//std::cout << (*script)[index].first.x << " " << (*script)[index].first.y << std::endl;
-		
-		if((*script)[index].first.x == block.getPosition().x && (*script)[index].first.y == block.getPosition().y)
-			index++;
-	}
+		/*std::cout << x << " " << y << std::endl;
+		std::cout << (*script)[scriptIndex].first.x << " " << (*script)[scriptIndex].first.y << std::endl;
+		std::cout << block.getPosition().x << " " << block.getPosition().y << std::endl << std::endl;*/
 
+		if ((*script)[scriptIndex].first.x == block.getPosition().x && (*script)[scriptIndex].first.y == block.getPosition().y)
+			scriptIndex++;
+	}
 	//animation
 }
 
@@ -77,7 +83,6 @@ void Block::showHitBox() {
 bool Block::colliding(sf::RectangleShape box) {
 	return block.getGlobalBounds().intersects(box.getGlobalBounds());
 }
-
 
 sf::Vector2f Block::getSize() {
 	return block.getSize();

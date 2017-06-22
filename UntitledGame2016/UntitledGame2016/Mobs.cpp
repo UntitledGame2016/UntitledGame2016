@@ -35,21 +35,24 @@ bool Mob::collide(sf::Sprite &obj) {
 }
 
 void Mob::update(float time) {
-	delay -= time;
+	//
 }
 
 void Mob::changeHealth(const int hp) {
-	if (delay <= 0) {
-		delay = cooldown;
-		health += hp;
-		if (hp < 0) 
-			if (health < 0)
-				health = 0;
-		else 
-			if (health > maxHealth)
-				health = maxHealth;
-		float temp = barLength * (health / maxHealth);
-		std::cout << health << " " << maxHealth << " " << temp << " " << health / maxHealth << std::endl;
-		healthbar.setSize({ temp, 10 });
-	}
+	health += hp;
+	if (hp < 0)
+		if (health < 0)
+			health = 0;
+	else 
+		if (health > maxHealth)
+			health = maxHealth;
+	float temp = barLength * (health / maxHealth);
+	std::cout << health << " " << maxHealth << " " << temp << " " << health / maxHealth << std::endl;
+	healthbar.setSize({ temp, 10 });
+}
+
+bool Mob::dead() {
+	if (health > 0)
+		return false;
+	return true;
 }

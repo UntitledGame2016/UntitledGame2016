@@ -20,7 +20,6 @@ int main() {
 
 	//Time
 	sf::Clock cl;
-	sf::Time elapsed;
 
 	//Objects (size, position) 
 	sf::RectangleShape background;
@@ -40,11 +39,6 @@ int main() {
 	Hero hero({ 0, 250 });
 	int weaponIndex = 0;
 
-	std::vector<Weapon *> weapons;
-	weapons.push_back(new Ranged("Gun", 10, { 0, 0, 64, 64 }));
-	weapons.push_back(new Ranged("Assault Rifle", 50, { 0, 0, 64, 64 }, 100000.0f));
-	weapons.push_back(new Ranged("Machine Gun", 200, { 0, 0, 64,64 }, 25000.0f));
-
 	//Mobs
 	std::vector<Mob *> mobs;
 	mobs.push_back(new Mob(textures, { 400, 436 }, 100));
@@ -52,7 +46,8 @@ int main() {
 	//Level design
 	std::vector<Block *> blocks;
 	std::vector<std::pair<sf::Vector2u, float>> blockScript;
-	blockScript.push_back(std::pair<sf::Vector2u, float>({ 800, 300 }, 1.0f));
+	blockScript.push_back(std::pair<sf::Vector2u, float>({ 300, 300 }, 1.0f));
+	blockScript.push_back(std::pair<sf::Vector2u, float>({ 0, 300 }, 1.0f));
 	
 	blocks.push_back(new Block({ 1000, 50 }, { 0, 500 }, "box.png"));
 	blocks.push_back(new Block({ 50, 50 }, { 300, 350 }, "box2.png"));
@@ -67,35 +62,14 @@ int main() {
 			if (event.type == sf::Event::Closed)
 				window.close();
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) 
-			weapons[weaponIndex]->attack(hero.getPosition(), hero.face());
-
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1)) 
-			weaponIndex = 0;
-
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2)) 
-			weaponIndex = 1;
-
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3))
-			weaponIndex = 2;
-		/*
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::R))
-			weapons[weaponIndex]->reload(5);
-		*/
 // -- Logic --
 	//Gravity
 
 	//Update
-		hero.update(cl.getElapsedTime().asSeconds(), blocks);
+		hero.update(cl.getElapsedTime().asSeconds(), blocks, mobs);
 		blocks[3]->update(cl.getElapsedTime().asSeconds());
 		//std::cout << cl.getElapsedTime().asMicroseconds() << std::endl;
-
-		for(Weapon * w: weapons)
-			w->update(cl.getElapsedTime().asMicroseconds(), mobs);
-		mobs[0]->update(cl.getElapsedTime().asMicroseconds());
-
-		elapsed = cl.restart();
-
+		cl.restart();
 
 // -- Draw --
 		window.clear();
@@ -107,12 +81,8 @@ int main() {
 
 		//Player
 		hero.draw(window);
-		mobs[0]->draw(window);
-
-		//Weapons
-		for (Weapon * w : weapons)
-			w->drawBullets(window);
-		weapons[weaponIndex]->draw(window);
+		for (Mob * a : mobs) 
+			a->draw(window);
 
 		window.display();
 	}

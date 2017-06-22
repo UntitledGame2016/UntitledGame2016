@@ -4,6 +4,7 @@
 #include <math.h>
 #include "Animation.h"
 #include "Environment.h"
+#include "Weapons.h"
 
 class Hero {
 private:
@@ -33,8 +34,13 @@ private:
 	int hp = maxhp;
 	int hpindex = 0;
 
+	std::vector<Weapon *> weapons;
+	Weapon * weapon;
+
 public:
 	void changeHealth(const int x);
+	void wield(Weapon * w);
+	Weapon& getWeapon();
 
 private:
 	//Gravity
@@ -55,9 +61,9 @@ public:
 	void setY(float position);
 	bool face();
 
-	void update(float time, std::vector<Block *> blocks);
+	void update(float time, std::vector<Block *> blocks, std::vector<Mob *> &mobs);
 	void draw(sf::RenderWindow & window);
-	void move(sf::Vector2f distance, float elapsed);
+	void move(sf::Vector2f distance);
 
 	bool BBcollide(const sf::Sprite & obj2);
 	sf::FloatRect getGlobalBounds();
