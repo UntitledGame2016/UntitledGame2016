@@ -12,11 +12,12 @@ class Mob {
 	sf::RectangleShape healthbar;
 	sf::Texture texture;
 
+	float cooldown = 300000;
 	float delay = 0;
-	const float cooldown = 500000;
 
-	int health;
-	int maxHealth;
+	float barLength;
+	float health;
+	float maxHealth;
 public:
 	Mob(TextureManager &textures, sf::Vector2f newpos, int health);
 	void draw(sf::RenderWindow &window);

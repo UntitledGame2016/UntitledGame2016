@@ -6,7 +6,7 @@
 
 using namespace Collision;
 
-int main(){
+int main() {
 	//Render Window
 	float height = 1080;
 	float width = 540;
@@ -14,7 +14,7 @@ int main(){
 	sf::RenderWindow window;
 	sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
 	settings.antialiasingLevel = 8;
-	window.create(sf::VideoMode(height, width, desktop.bitsPerPixel), "Untitled Game", 
+	window.create(sf::VideoMode(height, width, desktop.bitsPerPixel), "Untitled Game",
 		sf::Style::Default, settings);
 	window.setFramerateLimit(60);
 
@@ -51,9 +51,13 @@ int main(){
 
 	//Level design
 	std::vector<Block *> blocks;
+	std::vector<std::pair<sf::Vector2u, float>> blockScript;
+	blockScript.push_back(std::pair<sf::Vector2u, float>({ 800, 300 }, 1.0f));
+	
 	blocks.push_back(new Block({ 1000, 50 }, { 0, 500 }, "box.png"));
 	blocks.push_back(new Block({ 50, 50 }, { 300, 350 }, "box2.png"));
 	blocks.push_back(new Block({ 1000, 50 }, { 540, 400 }, "box.png"));
+	blocks.push_back(new Block({ 50, 50 }, { 0, 300 }, "box2.png", &blockScript));
 	
 	while (window.isOpen()) {
 
@@ -83,6 +87,7 @@ int main(){
 
 	//Update
 		hero.update(cl.getElapsedTime().asSeconds(), blocks);
+		blocks[3]->update(cl.getElapsedTime().asSeconds());
 		//std::cout << cl.getElapsedTime().asMicroseconds() << std::endl;
 
 		for(Weapon * w: weapons)

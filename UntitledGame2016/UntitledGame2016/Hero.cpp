@@ -9,7 +9,7 @@ Hero::Hero(sf::Vector2f newPos) : row(0){
 	hitbox.setPosition(newPos.x + 14, newPos.y + 1);
 	hitbox.setFillColor(sf::Color::Transparent);
 
-	animation = new Animation(heroTexture, sf::Vector2u(3,2), 1.0f);
+	animation = new Animation(heroTexture, sf::Vector2u(3,2), 0.2f);
 	faceRight = false;
 	
 	if (!nameFont.loadFromFile("fonts/arial.ttf"))
@@ -60,14 +60,10 @@ void Hero::draw(sf::RenderWindow &window) {
 void Hero::move(sf::Vector2f distance, float elapsed) {
 	heroSprite.move(distance);
 	hitbox.move(distance);
-	if (distance.x > 0) {
+	if (distance.x > 0) 
 		faceRight = true;
-		row = 0;
-	}
-	if (distance.x < 0) {
+	if (distance.x < 0) 
 		faceRight = false;
-		row = 1;
-	}
 }
 
 bool Hero::face() {
@@ -245,6 +241,7 @@ return false;
 sf::FloatRect Hero::getGlobalBounds() {
 	return hitbox.getGlobalBounds();
 }
+
 sf::FloatRect Hero::getGlobalBounds2() {
 	return heroSprite.getGlobalBounds();
 }

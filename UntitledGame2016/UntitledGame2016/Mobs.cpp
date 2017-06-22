@@ -5,7 +5,8 @@ Mob::Mob(TextureManager &textures, sf::Vector2f newpos, int health) : health(hea
 	hitbox.setPosition(newpos);
 	hitbox.setFillColor(sf::Color::Green);
 
-	healthbar.setSize({ hitbox.getSize().x*(3 / 2), 10 });
+	barLength = hitbox.getSize().x*(3 / 2);
+	healthbar.setSize({ barLength, 10 });
 	healthbar.setFillColor(sf::Color::Red);
 	healthbar.setOutlineColor(sf::Color::Black);
 	healthbar.setOutlineThickness(2);
@@ -21,10 +22,12 @@ void Mob::setPosition(sf::Vector2f pos) {
 }
 
 void Mob::draw(sf::RenderWindow &window) {
-	healthbar.setPosition({ hitbox.getPosition().x - hitbox.getSize().x*(3 / 4), hitbox.getPosition().y - 20 });
-	window.draw(hitbox);
-	window.draw(sprite);
-	window.draw(healthbar);
+	if (health > 0) {
+		healthbar.setPosition({ hitbox.getPosition().x - hitbox.getSize().x*(3 / 4), hitbox.getPosition().y - 20 });
+		window.draw(hitbox);
+		window.draw(sprite);
+		window.draw(healthbar);
+	}
 }
 
 bool Mob::collide(sf::Sprite &obj) {
@@ -36,15 +39,17 @@ void Mob::update(float time) {
 }
 
 void Mob::changeHealth(const int hp) {
-	delay = cooldown;
-	if (health - hp > 0 && hp < 0 && health > 0) {
+	if (delay <= 0) {
+		delay = cooldown;
 		health += hp;
-		float temp = hitbox.getSize().x * (health / maxHealth);
-		std::cout << health << " " << temp << std::endl;
-		healthbar.setSize({ temp, 64 });
+		if (hp < 0) 
+			if (health < 0)
+				health = 0;
+		else 
+			if (health > maxHealth)
+				health = maxHealth;
+		float temp = barLength * (health / maxHealth);
+		std::cout << health << " " << maxHealth << " " << temp << " " << health / maxHealth << std::endl;
+		healthbar.setSize({ temp, 10 });
 	}
-	else
-		healthbar.setSize({ 0, 0 });
-
-	//No increase health yet;
 }

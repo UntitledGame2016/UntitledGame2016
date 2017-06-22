@@ -37,11 +37,6 @@ public:
 	void changeHealth(const int x);
 
 private:
-	float speed;
-
-	float delay = 0;
-	const float cooldown = 500000;
-
 	//Gravity
 	bool fall = true;
 	bool jumping = false;

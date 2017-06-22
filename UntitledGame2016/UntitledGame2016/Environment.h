@@ -4,18 +4,24 @@
 #include <SFML\Graphics.hpp>
 #include "Collision.h"
 #include "TextureManager.h"
+#include <map>
 
 class Block {
 	TextureManager textures;
 	sf::RectangleShape block;
 	sf::Texture blockTexture;
 	sf::Sprite blockSprite;
+
+	std::vector<std::pair<sf::Vector2u, float>> * script; //coordinate vs speed
 public:
-	Block(sf::Vector2f size, sf::Vector2f newPos, const std::string & fileName);
+	bool moving;
+	Block(sf::Vector2f size, sf::Vector2f newPos, const std::string & fileName, std::vector<std::pair<sf::Vector2u, float>> * scr);
+	Block(sf::Vector2f size, sf::Vector2f newPos, const std::string& fileName);
 	sf::Sprite & getSprite();
 	void move(sf::Vector2f distance);
 	void draw(sf::RenderWindow & window);
 	void showHitBox();
+	void update(float deltaTime);
 	bool colliding(sf::RectangleShape box);
 	sf::Vector2f getSize();
 	float getX();
