@@ -22,7 +22,7 @@ public:
 	void move(sf::Vector2f distance);
 	void draw(sf::RenderWindow & window);
 	void showHitBox();
-	void update(float deltaTime);
+	sf::Vector2f update(float deltaTime);
 	bool colliding(sf::RectangleShape box);
 	sf::Vector2f getSize();
 	float getX();

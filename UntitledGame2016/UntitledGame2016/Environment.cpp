@@ -32,21 +32,21 @@ Block::Block(sf::Vector2f size, sf::Vector2f newPos, const std::string& fileName
 	
 }
 
-void Block::update(float deltaTime) {
-	if(scriptIndex < script->size()){
-		float x = (*script)[scriptIndex].second;
-		float y = (*script)[scriptIndex].second;
+sf::Vector2f Block::update(float deltaTime) {
+	//if(scriptIndex < script->size()){
+		float x = (*script)[scriptIndex % script->size()].second;
+		float y = (*script)[scriptIndex % script->size()].second;
 
-		if ((*script)[scriptIndex].first.x > block.getPosition().x)
+		if ((*script)[scriptIndex % script->size()].first.x > block.getPosition().x)
 			x = fabs(x);
-		else if ((*script)[scriptIndex].first.x < block.getPosition().x)
+		else if ((*script)[scriptIndex % script->size()].first.x < block.getPosition().x)
 			x = -fabs(x);
 		else
 			x = 0;
 
-		if ((*script)[scriptIndex].first.y > block.getPosition().y)
+		if ((*script)[scriptIndex % script->size()].first.y > block.getPosition().y)
 			y = fabs(y);
-		else if ((*script)[scriptIndex].first.y < block.getPosition().y)
+		else if ((*script)[scriptIndex % script->size()].first.y < block.getPosition().y)
 			y = -fabs(y);
 		else
 			y = 0;
@@ -56,9 +56,11 @@ void Block::update(float deltaTime) {
 		std::cout << (*script)[scriptIndex].first.x << " " << (*script)[scriptIndex].first.y << std::endl;
 		std::cout << block.getPosition().x << " " << block.getPosition().y << std::endl << std::endl;*/
 
-		if ((*script)[scriptIndex].first.x == block.getPosition().x && (*script)[scriptIndex].first.y == block.getPosition().y)
+		if ((*script)[scriptIndex % script->size()].first.x == block.getPosition().x && (*script)[scriptIndex % script->size()].first.y == block.getPosition().y)
 			scriptIndex++;
-	}
+
+		return{ x, y };
+	//}
 	//animation
 }
 

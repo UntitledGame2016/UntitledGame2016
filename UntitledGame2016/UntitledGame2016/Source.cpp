@@ -67,7 +67,7 @@ int main() {
 
 	//Update
 		hero.update(cl.getElapsedTime().asSeconds(), blocks, mobs);
-		blocks[3]->update(cl.getElapsedTime().asSeconds());
+		//blocks[3]->update(cl.getElapsedTime().asSeconds());
 		//std::cout << cl.getElapsedTime().asMicroseconds() << std::endl;
 		cl.restart();
 

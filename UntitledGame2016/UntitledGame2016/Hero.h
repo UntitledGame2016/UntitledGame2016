@@ -63,6 +63,7 @@ public:
 
 	void update(float time, std::vector<Block *> blocks, std::vector<Mob *> &mobs);
 	void draw(sf::RenderWindow & window);
+	void stop(sf::Vector2f distance);
 	void move(sf::Vector2f distance);
 
 	bool BBcollide(const sf::Sprite & obj2);
