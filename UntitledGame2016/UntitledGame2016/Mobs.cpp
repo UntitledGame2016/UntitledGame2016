@@ -11,7 +11,7 @@ Mob::Mob(TextureManager &textures, sf::Vector2f newpos, int health) : health(hea
 	healthbar.setOutlineColor(sf::Color::Black);
 	healthbar.setOutlineThickness(2);
 
-	texture = textures.loadTexture("mob.png");
+	texture = textures.loadTexture("weapons_spritesheet.png");
 	sprite.setPosition(hitbox.getPosition());
 	sprite.setTexture(texture);
 }
@@ -32,6 +32,10 @@ void Mob::draw(sf::RenderWindow &window) {
 
 bool Mob::collide(sf::Sprite &obj) {
 	return Collision::PixelPerfectTest(sprite, obj);
+}
+
+bool Mob::collide(sf::RectangleShape &obj) {
+	return hitbox.getGlobalBounds().intersects(obj.getGlobalBounds());
 }
 
 void Mob::update(float time) {

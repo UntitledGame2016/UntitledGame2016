@@ -29,38 +29,42 @@ Block::Block(sf::Vector2f size, sf::Vector2f newPos, const std::string& fileName
 	block.setSize(size);
 	block.setPosition(newPos);
 	block.setFillColor(sf::Color::Transparent);
-	
+}
+
+Block::Block(sf::Vector2f size, sf::Vector2f newPos) {
+	block.setSize(size);
+	block.setPosition(newPos);
+	block.setFillColor(sf::Color::Red);
 }
 
 sf::Vector2f Block::update(float deltaTime) {
-	//if(scriptIndex < script->size()){
-		float x = (*script)[scriptIndex % script->size()].second;
-		float y = (*script)[scriptIndex % script->size()].second;
+	float x = (*script)[scriptIndex % script->size()].second;
+	float y = (*script)[scriptIndex % script->size()].second;
 
-		if ((*script)[scriptIndex % script->size()].first.x > block.getPosition().x)
-			x = fabs(x);
-		else if ((*script)[scriptIndex % script->size()].first.x < block.getPosition().x)
-			x = -fabs(x);
-		else
-			x = 0;
+	if ((*script)[scriptIndex % script->size()].first.x > block.getPosition().x)
+		x = fabs(x);
+	else if ((*script)[scriptIndex % script->size()].first.x < block.getPosition().x)
+		x = -fabs(x);
+	else
+		x = 0;
 
-		if ((*script)[scriptIndex % script->size()].first.y > block.getPosition().y)
-			y = fabs(y);
-		else if ((*script)[scriptIndex % script->size()].first.y < block.getPosition().y)
-			y = -fabs(y);
-		else
-			y = 0;
+	if ((*script)[scriptIndex % script->size()].first.y > block.getPosition().y)
+		y = fabs(y);
+	else if ((*script)[scriptIndex % script->size()].first.y < block.getPosition().y)
+		y = -fabs(y);
+	else
+		y = 0;
 
-		move({ x, y });
-		/*std::cout << x << " " << y << std::endl;
-		std::cout << (*script)[scriptIndex].first.x << " " << (*script)[scriptIndex].first.y << std::endl;
-		std::cout << block.getPosition().x << " " << block.getPosition().y << std::endl << std::endl;*/
+	move({ x, y });
+	/*std::cout << x << " " << y << std::endl;
+	std::cout << (*script)[scriptIndex].first.x << " " << (*script)[scriptIndex].first.y << std::endl;
+	std::cout << block.getPosition().x << " " << block.getPosition().y << std::endl << std::endl;*/
 
-		if ((*script)[scriptIndex % script->size()].first.x == block.getPosition().x && (*script)[scriptIndex % script->size()].first.y == block.getPosition().y)
-			scriptIndex++;
+	if ((*script)[scriptIndex % script->size()].first.x == block.getPosition().x && (*script)[scriptIndex % script->size()].first.y == block.getPosition().y)
+		scriptIndex++;
 
-		return{ x, y };
-	//}
+	return{ x, y };
+
 	//animation
 }
 

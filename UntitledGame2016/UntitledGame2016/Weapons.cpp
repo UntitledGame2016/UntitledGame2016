@@ -88,26 +88,30 @@ void Weapon::draw(sf::RenderWindow &window) {
 	window.draw(weaponSprite);
 }
 
+void Weapon::drawHUD(sf::RenderWindow & window){
+	
+}
+
 Ranged::Ranged(std::string name, int durability, sf::IntRect textureRect, const float newfirerate) :
 	Weapon(name, durability, textureRect), firerate(newfirerate) {
 
-	clipText.setFont(font);
-	clipText.setCharacterSize(15);
-	clipText.setFillColor(sf::Color::Black);
-	clipText.setPosition({ 300, 20 });
+	weaponHUD.setFont(font);
+	weaponHUD.setCharacterSize(15);
+	weaponHUD.setFillColor(sf::Color::Black);
+	weaponHUD.setPosition({ 300, 20 });
 
 	for (int i = 0; i < durability; i++)
 		bullets.push_back(new Bullet());
 }
 
 void Ranged::draw(sf::RenderWindow &window) {
-	window.draw(clipText);
-	Weapon::draw(window);
-}
-
-void Ranged::drawBullets(sf::RenderWindow &window) {
 	for (size_t i = 0; i < bullets.size(); i++)
 		bullets[i]->draw(window);
+}
+
+void Ranged::drawHUD(sf::RenderWindow &window) {
+	Weapon::draw(window);
+	window.draw(weaponHUD);
 }
 
 
@@ -136,20 +140,24 @@ void Ranged::attack(sf::Vector2f pos, bool faceRight) {
 		return;
 }
 
-void Ranged::update(float time, Mob * mob) {
+void Ranged::update(float time, std::vector<Mob *> &mobs) {
 	delay -= time;
 	std::ostringstream temp;
 	temp << durability;
-	clipText.setString(temp.str());
+	if (durability > 0)
+		weaponHUD.setString(temp.str());
+	else
+		weaponHUD.setString("You're out of ammo.");
 
 	for (int i = bullets.size() - 1; i > -1; i--)
 		if (bullets[i]->isready()) {
 			bullets[i]->move({ bullets[i]->getvel(), 0 });
-			if (bullets[i]->collide(mob->getSprite()) && !mob->dead()) {
-				bullets[i]->toggle(false);
-				mob->changeHealth(-5);
-			}
-			if (bullets[i]->getPosition().x >= 1080 || bullets[i]->getPosition().x + bullets[i]->getHBSize().x <= 0)
+			for(Mob * mob : mobs)
+				if (bullets[i]->collide(mob->getSprite()) && !mob->dead()) {
+					bullets[i]->toggle(false);
+					mob->changeHealth(-5);
+				}
+			if (bullets[i]->getPosition().x >= 1920 || bullets[i]->getPosition().x + bullets[i]->getHBSize().x <= 0)
 				bullets[i]->toggle(false);
 		}
 
@@ -166,3 +174,100 @@ void Ranged::reload(int newBullets) {
 
 	durability = bullets.size() - bulletsfired;
 }
+
+Melee::Melee() {
+	hitbox.setSize({ 10,5 });
+	hitbox.setPosition({ 0, 0 });
+	hitbox.setFillColor(sf::Color::Yellow);
+	attacking = false;
+
+	weaponHUD.setFont(font);
+	weaponHUD.setCharacterSize(15);
+	weaponHUD.setFillColor(sf::Color::Black);
+	weaponHUD.setPosition({ 300, 20 });
+}
+
+Melee::Melee(std::string name, int durability, sf::IntRect textureRect, const float attackSpeed, float range ) :
+	Weapon(name, durability, textureRect), attackSpeed(attackSpeed), range(range){
+	hitbox.setSize({2, 15});
+	hitbox.setPosition({ 0, 0 });
+	hitbox.setFillColor(sf::Color::Black);
+	attacking = false;
+
+	weaponHUD.setFont(font);
+	weaponHUD.setCharacterSize(15);
+	weaponHUD.setFillColor(sf::Color::Black);
+	weaponHUD.setPosition({ 300, 20 });
+
+	speed = 5.0f;
+}
+
+void Melee::update(float time, std::vector<Mob *> &mobs) {
+	delay -= time;
+
+	float hbx = fabs(hitbox.getSize().x);
+	float hby = hitbox.getSize().y;
+
+	if (attacking) {
+		if (fabs(hbx) >= range)
+			speed = -fabs(speed);
+
+		if (fabs(hbx) <= 0) {
+			speed = fabs(speed);
+			attacking = false;
+		}
+
+		hbx += speed;
+
+		if (faceRight) 
+			hbx = fabs(hbx);
+		else 
+			hbx = -fabs(hbx);
+
+		hitbox.setSize({ hbx, hby });
+		for(Mob * mob : mobs)
+			if (mob->collide(hitbox) && !mob->dead()) {
+				mob->changeHealth(-25);
+				durability--;
+				attacking = false;
+			}
+		
+	}
+	else {
+		hitbox.setSize({ 5.0f, hby });
+		hitbox.setPosition({ 0, 0 });
+	}
+
+	std::ostringstream temp;
+	temp << durability;
+	if (durability > 0)
+		weaponHUD.setString(temp.str());
+	else
+		weaponHUD.setString("Your sword is broken.");
+
+	//damage calculation
+}
+
+void Melee::attack(sf::Vector2f pos, bool face){
+	faceRight = face;
+	if (!attacking && durability > 0 && delay <= 0) {
+		delay = attackSpeed;
+		attacking = true;
+	}
+	if (faceRight) {
+		hitbox.setPosition({ pos.x + 64, pos.y + (64 + hitbox.getSize().y) / 2 });
+	}
+	else {
+		hitbox.setPosition({ pos.x, pos.y + (64 + hitbox.getSize().y) / 2 });
+	}
+}
+
+void Melee::draw(sf::RenderWindow &window){
+	window.draw(hitbox);
+}
+
+void Melee::drawHUD(sf::RenderWindow &window) {
+	Weapon::draw(window);
+	window.draw(weaponHUD);
+}
+

@@ -30,17 +30,20 @@ private:
 	sf::CircleShape healthOverlay;
 
 	double pi = 3.1415926535897932384;
-	int maxhp = 100;
-	int hp = maxhp;
+	double maxhp = 100;
+	double hp = maxhp;
 	int hpindex = 0;
 
+public:
+	void changeHealth(const double x);
+
+private:
 	std::vector<Weapon *> weapons;
 	Weapon * weapon;
 
 public:
-	void changeHealth(const int x);
-	void wield(Weapon * w);
 	Weapon& getWeapon();
+	void wield(Weapon * w);
 
 private:
 	//Gravity
@@ -63,8 +66,8 @@ public:
 
 	void update(float time, std::vector<Block *> blocks, std::vector<Mob *> &mobs);
 	void draw(sf::RenderWindow & window);
-	void stop(sf::Vector2f distance);
 	void move(sf::Vector2f distance);
+	void stop(sf::Vector2f distance);
 
 	bool BBcollide(const sf::Sprite & obj2);
 	sf::FloatRect getGlobalBounds();

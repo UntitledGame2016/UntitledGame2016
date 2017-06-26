@@ -48,7 +48,7 @@ Hero::Hero(sf::Vector2f newPos) : row(0){
 	}
 
 	weapons.push_back(new Ranged("Gun", 10, { 0, 0, 64, 64 }));
-	weapons.push_back(new Ranged("Assault Rifle", 50, { 0, 0, 64, 64 }, 0.2f));
+	weapons.push_back(new Melee("Sword", 10, { 0, 0, 64, 64 }, 0.25f));
 	weapons.push_back(new Ranged("Machine Gun", 200, { 0, 0, 64,64 }, 0.1f));
 	weapon = weapons[0];
 }
@@ -60,26 +60,19 @@ void Hero::draw(sf::RenderWindow &window) {
 	window.draw(healthCircle);
 	window.draw(healthOverlay);
 	window.draw(deathMessage);
-	weapon->draw(window);
-	for(Weapon * w: weapons)
-		w->drawBullets(window);
+	for (Weapon * w : weapons)
+		w->draw(window);
+	weapon->drawHUD(window);
 }
 
 void Hero::stop(sf::Vector2f distance) {
 	heroSprite.move(distance);
 	hitbox.move(distance);
-	/*if (distance.x > 0)
-		faceRight = false;
-	if (distance.x < 0)
-		faceRight = true;*/
 }
+
 void Hero::move(sf::Vector2f distance) {
 	heroSprite.move(distance);
 	hitbox.move(distance);
-	if (distance.x > 0) 
-		faceRight = true;
-	if (distance.x < 0) 
-		faceRight = false;
 }
 
 bool Hero::face() {
@@ -90,9 +83,8 @@ void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &m
 	bool collisions = false;
 
 	sf::Vector2f dist = blocks[3]->update(time);
-	if (curr != -1 && blocks[curr]->moving) {
+	if (curr != -1 && blocks[curr]->moving)
 		stop(dist);
-	}
 
 	//Keys
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && !jumping) {
@@ -109,9 +101,10 @@ void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &m
 	}
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
+		faceRight = true;
 		move({ moveSpeed, 0 });
 		if (fallLeft) {
-			stop({ -moveSpeed, 0 });
+			move({ -moveSpeed, 0 });
 		}
 		if (!jumping && !blocks[curr]->colliding(hitbox)) {
 			fallRight = true;
@@ -121,16 +114,17 @@ void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &m
 		for (size_t i = 0; i < blocks.size(); i++) {
 			if (curr != i && blocks[i]->colliding(hitbox)) {
 				std::cout << "Left Collision" << std::endl;
-				stop({ -moveSpeed, 0 });
+				move({ -moveSpeed, 0 });
 				break;
 			}
 		}
 	}
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
+		faceRight = false;
 		move({ -moveSpeed, 0 });
 		if (fallRight) {
-			stop({ moveSpeed, 0 });
+			move({ moveSpeed, 0 });
 		}
 		if (!jumping && !blocks[curr]->colliding(hitbox)) {
 			fallLeft = true;
@@ -140,7 +134,7 @@ void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &m
 		for (size_t i = 0; i < blocks.size(); i++) {
 			if (curr != i && blocks[i]->colliding(hitbox)) {
 				std::cout << "Right Collision" << std::endl;
-				stop({ moveSpeed, 0 });
+				move({ moveSpeed, 0 });
 				break;
 			}
 		}
@@ -201,9 +195,13 @@ void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &m
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3))
 		wield(weapons[2]);
 
-	for (Mob * mob : mobs)
-		for(Weapon * w: weapons)
-			w->update(time, mob);
+	for (Mob * mob : mobs) {
+		if (mob->collide(hitbox) && !mob->dead())
+			changeHealth(-1);
+	}
+
+	for(Weapon * w: weapons)
+		w->update(time, mobs);
 
 	animation->update(row, time, faceRight);
 	heroSprite.setTextureRect(animation->uvRect);
@@ -217,7 +215,7 @@ Weapon& Hero::getWeapon() {
 	return *weapon;
 }
 
-void Hero::changeHealth(const int x) { //HUD
+void Hero::changeHealth(const double x) { //HUD
 	if (x < -maxhp) {
 		std::cout << "Damage cannot exceed available health" << std::endl;
 		return;

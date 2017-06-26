@@ -20,6 +20,7 @@ public:
 	void draw(sf::RenderWindow &window);
 	void setPosition(sf::Vector2f pos);
 	bool collide(sf::Sprite &obj);
+	bool collide(sf::RectangleShape &obj);
 	sf::Sprite getSprite() { return sprite; }
 	void changeHealth(const int hp);
 	void update(float time);

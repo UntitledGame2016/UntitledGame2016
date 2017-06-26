@@ -8,8 +8,8 @@ using namespace Collision;
 
 int main() {
 	//Render Window
-	float height = 1080;
-	float width = 540;
+	float height = 1920;
+	float width = 1080;
 	sf::ContextSettings settings;
 	sf::RenderWindow window;
 	sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
@@ -36,22 +36,27 @@ int main() {
 	textures.addTexture("bullet.png");
 
 	//Hero and Weapons 
-	Hero hero({ 0, 250 });
+	Hero hero({ 0, 200 });
 	int weaponIndex = 0;
 
 	//Mobs
 	std::vector<Mob *> mobs;
-	mobs.push_back(new Mob(textures, { 400, 436 }, 100));
+	mobs.push_back(new Mob(textures, { 400, 914 }, 100));
+	mobs.push_back(new Mob(textures, { 600, 876 }, 100));
+	mobs.push_back(new Mob(textures, { 800, 876 }, 100));
+	mobs.push_back(new Mob(textures, { 300, 814 }, 100));
 
 	//Level design
 	std::vector<Block *> blocks;
 	std::vector<std::pair<sf::Vector2u, float>> blockScript;
-	blockScript.push_back(std::pair<sf::Vector2u, float>({ 300, 300 }, 1.0f));
+	blockScript.push_back(std::pair<sf::Vector2u, float>({ 100, 300 }, 1.0f));
 	blockScript.push_back(std::pair<sf::Vector2u, float>({ 0, 300 }, 1.0f));
+	blockScript.push_back(std::pair<sf::Vector2u, float>({ 300, 300 }, 1.0f));
+	blockScript.push_back(std::pair<sf::Vector2u, float>({ 300, 0 }, 1.0f));
 	
-	blocks.push_back(new Block({ 1000, 50 }, { 0, 500 }, "box.png"));
-	blocks.push_back(new Block({ 50, 50 }, { 300, 350 }, "box2.png"));
-	blocks.push_back(new Block({ 1000, 50 }, { 540, 400 }, "box.png"));
+	blocks.push_back(new Block({ 1000, 50 }, { 0, 1000 }, "box.png"));
+	blocks.push_back(new Block({ 100, 100 }, { 0, 850 }));
+	blocks.push_back(new Block({ 1000, 50 }, { 540, 900 }, "box.png"));
 	blocks.push_back(new Block({ 50, 50 }, { 0, 300 }, "box2.png", &blockScript));
 	
 	while (window.isOpen()) {
