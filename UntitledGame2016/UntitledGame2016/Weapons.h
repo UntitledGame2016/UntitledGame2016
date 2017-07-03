@@ -38,9 +38,9 @@ class Weapon {
 	TextureManager textures;
 	sf::Sprite weaponSprite;
 	sf::Texture weaponTexture;
-
 	sf::Text name;
 protected:
+	bool attacking;
 	unsigned int durability;
 	unsigned int maxDurability;
 	sf::Font font;
@@ -52,6 +52,7 @@ public:
 	virtual void draw(sf::RenderWindow &window);
 	virtual void drawHUD(sf::RenderWindow &window);
 	virtual void reload(int newBullets) {};
+	virtual bool isattacking() { return false; };
 };
 
 class Ranged : public Weapon{
@@ -73,7 +74,6 @@ public:
 
 class Melee : public Weapon {
 	sf::RectangleShape hitbox;
-	bool attacking;
 	bool faceRight;
 	float range;
 	float attackSpeed;
@@ -88,5 +88,6 @@ public:
 	void attack(sf::Vector2f pos, bool faceRight);
 	void draw(sf::RenderWindow &window);
 	void drawHUD(sf::RenderWindow &window);
+	bool isattacking();
 };
 #endif 

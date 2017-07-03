@@ -36,7 +36,8 @@ int main() {
 	textures.addTexture("bullet.png");
 
 	//Hero and Weapons 
-	Hero hero({ 0, 200 });
+	Hero hero({ 0, 786 });
+	//hero.showHitBox();
 	int weaponIndex = 0;
 
 	//Mobs
@@ -71,7 +72,10 @@ int main() {
 	//Gravity
 
 	//Update
-		hero.update(cl.getElapsedTime().asSeconds(), blocks, mobs);
+		if (!hero.dead())
+			hero.update(cl.getElapsedTime().asSeconds(), blocks, mobs);
+		else
+			hero.deathAnimation(cl.getElapsedTime().asSeconds());
 		//blocks[3]->update(cl.getElapsedTime().asSeconds());
 		//std::cout << cl.getElapsedTime().asMicroseconds() << std::endl;
 		cl.restart();

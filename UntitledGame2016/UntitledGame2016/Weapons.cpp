@@ -262,6 +262,10 @@ void Melee::attack(sf::Vector2f pos, bool face){
 	}
 }
 
+bool Melee::isattacking() {
+	return attacking;
+}
+
 void Melee::draw(sf::RenderWindow &window){
 	window.draw(hitbox);
 }

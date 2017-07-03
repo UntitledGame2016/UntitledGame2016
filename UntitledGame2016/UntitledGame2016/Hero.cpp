@@ -9,7 +9,7 @@ Hero::Hero(sf::Vector2f newPos) : row(0){
 	hitbox.setPosition(newPos.x + 14, newPos.y + 1);
 	hitbox.setFillColor(sf::Color::Transparent);
 
-	animation = new Animation(heroTexture, sf::Vector2u(3,2), 0.2f);
+	animation = new Animation(heroTexture, sf::Vector2u(4,16), 0.08f);
 	faceRight = false;
 	
 	if (!nameFont.loadFromFile("fonts/arial.ttf"))
@@ -48,7 +48,7 @@ Hero::Hero(sf::Vector2f newPos) : row(0){
 	}
 
 	weapons.push_back(new Ranged("Gun", 10, { 0, 0, 64, 64 }));
-	weapons.push_back(new Melee("Sword", 10, { 0, 0, 64, 64 }, 0.25f));
+	weapons.push_back(new Melee("Sword", 10, { 0, 0, 64, 64 }, 0.5f));
 	weapons.push_back(new Ranged("Machine Gun", 200, { 0, 0, 64,64 }, 0.1f));
 	weapon = weapons[0];
 }
@@ -81,10 +81,20 @@ bool Hero::face() {
 
 void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &mobs) {
 	bool collisions = false;
+	row = 0;
 
 	sf::Vector2f dist = blocks[3]->update(time);
 	if (curr != -1 && blocks[curr]->moving)
 		stop(dist);
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
+		row = 8;
+		if (moveSpeed <= maxSpeed && (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) && !jumping)
+			moveSpeed += 0.5f;
+	}
+	else
+		if (moveSpeed > 3.5)
+			moveSpeed -= 0.3f;
 
 	//Keys
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && !jumping) {
@@ -101,31 +111,34 @@ void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &m
 	}
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-		faceRight = true;
+		if(!sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+			row = 1;
+		if(!weapon->isattacking())
+			faceRight = true;
 		move({ moveSpeed, 0 });
-		if (fallLeft) {
+		if (fallLeft && (blocks[curr]->getY() + blocks[curr]->getSize().y) >= hitbox.getPosition().y) 
 			move({ -moveSpeed, 0 });
-		}
 		if (!jumping && !blocks[curr]->colliding(hitbox)) {
 			fallRight = true;
 			jumpSpeed = 0;
 			jumping = true;
 		}
-		for (size_t i = 0; i < blocks.size(); i++) {
+		for (size_t i = 0; i < blocks.size(); i++) 
 			if (curr != i && blocks[i]->colliding(hitbox)) {
 				std::cout << "Left Collision" << std::endl;
 				move({ -moveSpeed, 0 });
 				break;
 			}
-		}
 	}
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-		faceRight = false;
+		if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+			row = 1;
+		if(!weapon->isattacking())
+			faceRight = false;
 		move({ -moveSpeed, 0 });
-		if (fallRight) {
+		if (fallRight && (blocks[curr]->getY() + blocks[curr]->getSize().y) >= hitbox.getPosition().y) 
 			move({ moveSpeed, 0 });
-		}
 		if (!jumping && !blocks[curr]->colliding(hitbox)) {
 			fallLeft = true;
 			jumpSpeed = 0;
@@ -140,20 +153,7 @@ void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &m
 		}
 	}
 
-	if (fall && !jumping && !sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) { //If falling
-		if (getY() < blocks[curr]->getY()) {
-			fallSpeed += gravity;
-			move({ 0, fallSpeed });
-			for (size_t i = 0; i < blocks.size(); i++)
-				if (blocks[i]->colliding(hitbox))
-					setY(blocks[i]->getY());
-		}
-		else {
-			fallSpeed = 0;
-			fall = false;
-		}
-	}
-	else if (jumping) {
+	if (jumping) {
 		for (size_t i = 0; i < blocks.size(); i++) { //If landing
 			float tempSpeed = jumpSpeed;
 			move({ 0, jumpSpeed + gravity });
@@ -178,27 +178,46 @@ void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &m
 			move({ 0, -tempSpeed - gravity });
 		}
 		if (!collisions) { //If still in the air
+			row = 13;
 			jumpSpeed += gravity;
 			move({ 0, jumpSpeed });
 		}
 	}
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+	if (curr != -1 && blocks[curr]->moving)
+		stop(dist);
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
 		weapon->attack(getPosition(), faceRight);
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1))
-		wield(weapons[0]);
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2))
-		wield(weapons[1]);
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3))
-		wield(weapons[2]);
-
-	for (Mob * mob : mobs) {
-		if (mob->collide(hitbox) && !mob->dead())
-			changeHealth(-1);
+		row = 2 + weapon_index;
 	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1)) {
+		wield(weapons[0]);
+		weapon_index = 0;
+	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2)) {
+		wield(weapons[1]);
+		weapon_index = 1;
+	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3)) {
+		wield(weapons[2]);
+		weapon_index = 2;
+	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E) && hero_active) {
+		changeHealth(50);
+		hero_active = false;
+	}
+
+
+	for (Mob * mob : mobs) 
+		if (mob->collide(hitbox) && !mob->dead()) {
+			changeHealth(-1);
+			row = 3;
+		}
 
 	for(Weapon * w: weapons)
 		w->update(time, mobs);
@@ -247,12 +266,26 @@ void Hero::changeHealth(const double x) { //HUD
 		}
 		hpindex = temp;
 	}
-	if (hp <= 0) {
+	if (hp <= 0) { //Death
 		name.setString("You're dead LUL");
 		deathMessage.setString("RIP");
 		healthOverlay.setFillColor(sf::Color::Black);
+		alive = false;
 	}
 	std::cout << "Health: " << hp << std::endl;
+}
+
+bool Hero::dead() {
+	if (!alive)
+		return true;
+	return false;
+}
+
+void Hero::deathAnimation(float time) {
+	row = 10;
+	animation->update(row, time, faceRight);
+	heroSprite.setTextureRect(animation->uvRect);
+	move({0, .5});
 }
 
 sf::Sprite Hero::getSprite() {

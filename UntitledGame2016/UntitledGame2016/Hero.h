@@ -34,27 +34,29 @@ private:
 	double hp = maxhp;
 	int hpindex = 0;
 
+	bool hero_active = true;
+	bool alive = true;
 public:
 	void changeHealth(const double x);
-
+	bool dead();
+	void deathAnimation(float time);
 private:
 	std::vector<Weapon *> weapons;
 	Weapon * weapon;
-
+	int weapon_index = 0;
 public:
 	Weapon& getWeapon();
 	void wield(Weapon * w);
 
 private:
 	//Gravity
-	bool fall = true;
-	bool jumping = false;
+	bool jumping = true;
 	bool fallRight = false;
 	bool fallLeft = false;
 	int curr = 0;			//Block index
-	float jumpSpeed = -15;
-	const float moveSpeed = 3.5; //DONT FUCKING CHANGE THIS
-	float fallSpeed = 0;
+	float jumpSpeed = 0;
+	float moveSpeed = 3.5f; //DONT FUCKING CHANGE THIS
+	const float maxSpeed = 20.0f;
 	const float gravity = 1.0;
 
 public:
