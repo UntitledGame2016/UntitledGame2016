@@ -83,9 +83,16 @@ void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &m
 	bool collisions = false;
 
 	sf::Vector2f dist = blocks[3]->update(time);
-	if (curr != -1 && blocks[curr]->moving)
-		stop(dist);
 
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
+		if(moveSpeed <= maxSpeed && (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) && !jumping)
+			moveSpeed += 0.5f;
+	}
+
+	else {
+		if (moveSpeed > 3.5)
+			moveSpeed -= 0.5f;
+	}
 	//Keys
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && !jumping) {
 		move({ 0, jumpSpeed });
@@ -103,7 +110,7 @@ void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &m
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
 		faceRight = true;
 		move({ moveSpeed, 0 });
-		if (fallLeft) {
+		if (fallLeft && (blocks[curr]->getY() + blocks[curr]->getSize().y) >= hitbox.getPosition().y) {
 			move({ -moveSpeed, 0 });
 		}
 		if (!jumping && !blocks[curr]->colliding(hitbox)) {
@@ -123,7 +130,7 @@ void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &m
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
 		faceRight = false;
 		move({ -moveSpeed, 0 });
-		if (fallRight) {
+		if (fallRight && (blocks[curr]->getY() + blocks[curr]->getSize().y) >= hitbox.getPosition().y ) {
 			move({ moveSpeed, 0 });
 		}
 		if (!jumping && !blocks[curr]->colliding(hitbox)) {
@@ -140,39 +147,27 @@ void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &m
 		}
 	}
 
-	if (fall && !jumping && !sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) { //If falling
-		if (getY() < blocks[curr]->getY()) {
-			fallSpeed += gravity;
-			move({ 0, fallSpeed });
-			for (size_t i = 0; i < blocks.size(); i++)
-				if (blocks[i]->colliding(hitbox))
-					setY(blocks[i]->getY());
-		}
-		else {
-			fallSpeed = 0;
-			fall = false;
-		}
-	}
-	else if (jumping) {
+	if (jumping) {
 		for (size_t i = 0; i < blocks.size(); i++) { //If landing
 			float tempSpeed = jumpSpeed;
 			move({ 0, jumpSpeed + gravity });
 			if (blocks[i]->colliding(hitbox)) {
 				// If Hero collides but the bottom of the hero is still below the platform
-				if (heroSprite.getPosition().y > blocks[i]->getY() + blocks[i]->getSize().y) {
+				if (heroSprite.getPosition().y > blocks[i]->getY() + blocks[i]->getSize().y ) {
 					// sets the top of the hero to bottom of platform
+					if(i == curr && fallLeft && sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 					setY(blocks[i]->getY() + blocks[i]->getSize().y + 64);
 					collisions = true;
 					jumpSpeed = 0;
 					break;
 				}
 				else {
-					setY(blocks[i]->getY());
-					jumpSpeed = -15;
-					jumping = false, fallLeft = false, fallRight = false;
-					curr = i;
-					collisions = true;
-					break;
+						setY(blocks[i]->getY());
+						jumpSpeed = -15;
+						jumping = false, fallLeft = false, fallRight = false;
+						curr = i;
+						collisions = true;
+						break;
 				}
 			}
 			move({ 0, -tempSpeed - gravity });
@@ -182,6 +177,8 @@ void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &m
 			move({ 0, jumpSpeed });
 		}
 	}
+	if (curr != -1 && blocks[curr]->moving)
+		stop(dist);
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 		weapon->attack(getPosition(), faceRight);

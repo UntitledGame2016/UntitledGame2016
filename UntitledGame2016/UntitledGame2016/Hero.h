@@ -47,14 +47,13 @@ public:
 
 private:
 	//Gravity
-	bool fall = true;
-	bool jumping = false;
+	bool jumping = true;
 	bool fallRight = false;
 	bool fallLeft = false;
 	int curr = 0;			//Block index
-	float jumpSpeed = -15;
-	const float moveSpeed = 3.5; //DONT FUCKING CHANGE THIS
-	float fallSpeed = 0;
+	float jumpSpeed = 0;
+	const float maxSpeed = 20;
+	float moveSpeed = 3.5; //DONT FUCKING CHANGE THIS
 	const float gravity = 1.0;
 
 public:
