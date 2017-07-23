@@ -85,11 +85,19 @@ Weapon::Weapon(std::string weaponName, int durability, sf::IntRect textureRect) 
 
 void Weapon::draw(sf::RenderWindow &window) {
 	window.draw(name);
-	window.draw(weaponSprite);
+	//window.draw(weaponSprite);
 }
 
 void Weapon::drawHUD(sf::RenderWindow & window){
 	
+}
+
+void Weapon::changeAttack(float newDmg) {
+	damage = newDmg;
+}
+
+bool Weapon::isRanged() {
+	return type;
 }
 
 Ranged::Ranged(std::string name, int durability, sf::IntRect textureRect, const float newfirerate) :
@@ -102,6 +110,9 @@ Ranged::Ranged(std::string name, int durability, sf::IntRect textureRect, const 
 
 	for (int i = 0; i < durability; i++)
 		bullets.push_back(new Bullet());
+
+	damage = 5.0f;
+	type = true;
 }
 
 void Ranged::draw(sf::RenderWindow &window) {
@@ -155,9 +166,9 @@ void Ranged::update(float time, std::vector<Mob *> &mobs) {
 			for(Mob * mob : mobs)
 				if (bullets[i]->collide(mob->getSprite()) && !mob->dead()) {
 					bullets[i]->toggle(false);
-					mob->changeHealth(-5);
+					mob->changeHealth(-damage);
 				}
-			if (bullets[i]->getPosition().x >= 1920 || bullets[i]->getPosition().x + bullets[i]->getHBSize().x <= 0)
+			if (bullets[i]->getPosition().x >= 1920*4 || bullets[i]->getPosition().x + bullets[i]->getHBSize().x <= 0)
 				bullets[i]->toggle(false);
 		}
 
@@ -185,6 +196,8 @@ Melee::Melee() {
 	weaponHUD.setCharacterSize(15);
 	weaponHUD.setFillColor(sf::Color::Black);
 	weaponHUD.setPosition({ 300, 20 });
+
+	damage = 25.0f;
 }
 
 Melee::Melee(std::string name, int durability, sf::IntRect textureRect, const float attackSpeed, float range ) :
@@ -199,7 +212,9 @@ Melee::Melee(std::string name, int durability, sf::IntRect textureRect, const fl
 	weaponHUD.setFillColor(sf::Color::Black);
 	weaponHUD.setPosition({ 300, 20 });
 
+	damage = 25.0f;
 	speed = 5.0f;
+	type = false;
 }
 
 void Melee::update(float time, std::vector<Mob *> &mobs) {
@@ -227,7 +242,7 @@ void Melee::update(float time, std::vector<Mob *> &mobs) {
 		hitbox.setSize({ hbx, hby });
 		for(Mob * mob : mobs)
 			if (mob->collide(hitbox) && !mob->dead()) {
-				mob->changeHealth(-25);
+				mob->changeHealth(-damage);
 				durability--;
 				attacking = false;
 			}

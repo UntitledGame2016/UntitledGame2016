@@ -16,9 +16,9 @@ class Block {
 	int scriptIndex;
 public:
 	bool moving;
-	Block(sf::Vector2f size, sf::Vector2f newPos, const std::string & fileName, std::vector<std::pair<sf::Vector2u, float>> * scr);
-	Block(sf::Vector2f size, sf::Vector2f newPos, const std::string& fileName);
-	Block(sf::Vector2f size, sf::Vector2f newPos);
+	Block(sf::Vector2f newPos, sf::Vector2f size, const std::string & fileName, std::vector<std::pair<sf::Vector2u, float>> * scr);
+	Block(sf::Vector2f newPos, sf::Vector2f size, const std::string& fileName);
+	Block(sf::Vector2f newPos, sf::Vector2f size);
 	sf::Sprite & getSprite();
 	void move(sf::Vector2f distance);
 	void draw(sf::RenderWindow & window);

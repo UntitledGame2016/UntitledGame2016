@@ -1,7 +1,6 @@
 #ifndef MOBS_H
 #define MOBS_H
 
-#include <iostream>
 #include <SFML/Graphics.hpp>
 #include "Collision.h"
 #include "TextureManager.h"

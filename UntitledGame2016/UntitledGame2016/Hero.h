@@ -2,9 +2,8 @@
 #define HERO_H
 
 #include <math.h>
-#include "Animation.h"
 #include "Environment.h"
-#include "Weapons.h"
+#include "Guardian.h"
 
 class Hero {
 private:
@@ -34,10 +33,13 @@ private:
 	double hp = maxhp;
 	int hpindex = 0;
 
-	bool hero_active = true;
+	int gIndex;
+	std::vector<Guardian *> guardians;
 	bool alive = true;
+	bool god = false;
 public:
-	void changeHealth(const double x);
+	void changeHealth(double x);
+	void godMode(bool toggle);
 	bool dead();
 	void deathAnimation(float time);
 private:
@@ -45,7 +47,7 @@ private:
 	Weapon * weapon;
 	int weapon_index = 0;
 public:
-	Weapon& getWeapon();
+	Weapon* getWeapon();
 	void wield(Weapon * w);
 
 private:
@@ -54,20 +56,24 @@ private:
 	bool fallRight = false;
 	bool fallLeft = false;
 	int curr = 0;			//Block index
-	float jumpSpeed = 0;
-	float moveSpeed = 3.5f; //DONT FUCKING CHANGE THIS
-	const float maxSpeed = 20.0f;
+	float jumpSpeed = 0;	//Jump is 15 pixels
+	float moveSpeed = 5.0f; //DONT FUCKING CHANGE THIS
+	float maxSpeed = 10.0f;
 	const float gravity = 1.0;
 
+	sf::Vector2f view;
 public:
 	float getY();
 	float getX();
 	void setX(float position);
 	void setY(float position);
 	bool face();
+	float getSpeed();
+	void changeMaxSpeed(float newMaxSpeed);
 
-	void update(float time, std::vector<Block *> blocks, std::vector<Mob *> &mobs);
-	void draw(sf::RenderWindow & window);
+	void update(float time, sf::Vector2f viewCoor, std::vector<Block *> blocks, std::vector<Mob *> &mobs);
+	void draw(sf::RenderWindow& window);
+	void drawHUD(sf::RenderWindow& window);
 	void move(sf::Vector2f distance);
 	void stop(sf::Vector2f distance);
 

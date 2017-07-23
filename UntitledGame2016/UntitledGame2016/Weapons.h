@@ -1,13 +1,12 @@
 #ifndef WEAPON_H
 #define WEAPON_H
 
-#include <iostream>
 #include <sstream>
 #include <vector>
 #include <SFML/Graphics.hpp>
-#include "TextureManager.h"
 #include "Collision.h"
 #include "Mobs.h"
+#include "Animation.h"
 
 /*								Bullet								*/
 class Bullet {
@@ -40,6 +39,8 @@ class Weapon {
 	sf::Texture weaponTexture;
 	sf::Text name;
 protected:
+	float damage;
+	bool type;
 	bool attacking;
 	unsigned int durability;
 	unsigned int maxDurability;
@@ -53,6 +54,8 @@ public:
 	virtual void drawHUD(sf::RenderWindow &window);
 	virtual void reload(int newBullets) {};
 	virtual bool isattacking() { return false; };
+	virtual void changeAttack(float newDmg);
+	virtual bool isRanged();
 };
 
 class Ranged : public Weapon{

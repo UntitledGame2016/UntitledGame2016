@@ -1,12 +1,11 @@
 #include "Environment.h"
 
-Block::Block(sf::Vector2f size, sf::Vector2f newPos, const std::string& fileName, std::vector<std::pair<sf::Vector2u, float>> * scr) : moving(moving) {
+Block::Block(sf::Vector2f newPos, sf::Vector2f size, const std::string& fileName, std::vector<std::pair<sf::Vector2u, float>> * scr) : moving(moving) {
 	textures.addTexture(fileName);
 	blockTexture = textures.loadTexture(fileName);
-	blockTexture.setRepeated(true);
 	blockSprite.setPosition(newPos);
 	blockSprite.setTexture(blockTexture);
-	//blockSprite.setTextureRect(sf::IntRect(0, 0, size.x, size.y));
+	blockSprite.setTextureRect(sf::IntRect(0, 0, int(size.x), int(size.y)));
 
 	script = scr;
 	scriptIndex = 0;
@@ -15,23 +14,22 @@ Block::Block(sf::Vector2f size, sf::Vector2f newPos, const std::string& fileName
 	block.setSize(size);
 	block.setPosition(newPos);
 	block.setFillColor(sf::Color::Red);
-
 }
 
-Block::Block(sf::Vector2f size, sf::Vector2f newPos, const std::string& fileName) {
+Block::Block(sf::Vector2f newPos, sf::Vector2f size, const std::string& fileName) {
 	textures.addTexture(fileName);
 	blockTexture = textures.loadTexture(fileName);
-	blockTexture.setRepeated(true);
 	blockSprite.setPosition(newPos);
 	blockSprite.setTexture(blockTexture);
-	//blockSprite.setTextureRect(sf::IntRect(0, 0, size.x, size.y));
+	blockSprite.setTextureRect(sf::IntRect{ 0, 0, int(size.x), int(size.y)});
+	blockTexture.setRepeated(true);
 
 	block.setSize(size);
 	block.setPosition(newPos);
 	block.setFillColor(sf::Color::Transparent);
 }
 
-Block::Block(sf::Vector2f size, sf::Vector2f newPos) {
+Block::Block(sf::Vector2f newPos, sf::Vector2f size) {
 	block.setSize(size);
 	block.setPosition(newPos);
 	block.setFillColor(sf::Color::Red);

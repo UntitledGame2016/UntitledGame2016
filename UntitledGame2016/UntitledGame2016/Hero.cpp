@@ -51,18 +51,27 @@ Hero::Hero(sf::Vector2f newPos) : row(0){
 	weapons.push_back(new Melee("Sword", 10, { 0, 0, 64, 64 }, 0.5f));
 	weapons.push_back(new Ranged("Machine Gun", 200, { 0, 0, 64,64 }, 0.1f));
 	weapon = weapons[0];
+
+	guardians.push_back(new Estelle(*this));
+	guardians.push_back(new Aiden(*this));
+	guardians.push_back(new Evangeline(*this));
+	gIndex = 0;
+}
+
+void Hero::drawHUD(sf::RenderWindow &window) {
+	window.draw(name);
+	window.draw(healthCircle);
+	window.draw(healthOverlay);
+	window.draw(deathMessage);
+	weapon->drawHUD(window);
+	guardians[gIndex]->draw(window);
 }
 
 void Hero::draw(sf::RenderWindow &window) {
 	window.draw(heroSprite);
-	window.draw(name);
 	window.draw(hitbox);
-	window.draw(healthCircle);
-	window.draw(healthOverlay);
-	window.draw(deathMessage);
 	for (Weapon * w : weapons)
 		w->draw(window);
-	weapon->drawHUD(window);
 }
 
 void Hero::stop(sf::Vector2f distance) {
@@ -79,9 +88,11 @@ bool Hero::face() {
 	return faceRight;
 }
 
-void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &mobs) {
+void Hero::update(float time, sf::Vector2f viewCoor, std::vector<Block *> blocks, std::vector<Mob *> &mobs) {
 	bool collisions = false;
 	row = 0;
+	view.x = viewCoor.x - (1920 / 2);
+	view.y = viewCoor.y - (1080 / 2);
 
 	sf::Vector2f dist = blocks[3]->update(time);
 	if (curr != -1 && blocks[curr]->moving)
@@ -207,11 +218,17 @@ void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &m
 		weapon_index = 2;
 	}
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E) && hero_active) {
-		changeHealth(50);
-		hero_active = false;
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Tab)) {
+		std::cout << "Guardian Index: " << gIndex << std::endl;
+		if (gIndex < guardians.size() - 1)
+			gIndex++;
+		else
+			gIndex = 0;
 	}
 
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
+		guardians[gIndex]->heroActive();
+	}
 
 	for (Mob * mob : mobs) 
 		if (mob->collide(hitbox) && !mob->dead()) {
@@ -221,7 +238,7 @@ void Hero::update(float time, std::vector<Block *> blocks, std::vector<Mob *> &m
 
 	for(Weapon * w: weapons)
 		w->update(time, mobs);
-
+	guardians[gIndex]->update(time);
 	animation->update(row, time, faceRight);
 	heroSprite.setTextureRect(animation->uvRect);
 }
@@ -230,11 +247,13 @@ void Hero::wield(Weapon * w) {
 	weapon = w;
 }
 
-Weapon& Hero::getWeapon() {
-	return *weapon;
+Weapon* Hero::getWeapon() {
+	return weapon;
 }
 
-void Hero::changeHealth(const double x) { //HUD
+void Hero::changeHealth(double x) { //HUD
+	if (god)
+		x = 0;
 	if (x < -maxhp) {
 		std::cout << "Damage cannot exceed available health" << std::endl;
 		return;
@@ -269,10 +288,15 @@ void Hero::changeHealth(const double x) { //HUD
 	if (hp <= 0) { //Death
 		name.setString("You're dead LUL");
 		deathMessage.setString("RIP");
+		deathMessage.setPosition({ view.x + 75, view.y + 80 });
 		healthOverlay.setFillColor(sf::Color::Black);
 		alive = false;
 	}
 	std::cout << "Health: " << hp << std::endl;
+}
+
+void Hero::godMode(bool toggle) {
+	god = toggle;
 }
 
 bool Hero::dead() {
@@ -286,6 +310,14 @@ void Hero::deathAnimation(float time) {
 	animation->update(row, time, faceRight);
 	heroSprite.setTextureRect(animation->uvRect);
 	move({0, .5});
+}
+
+float Hero::getSpeed() {
+	return moveSpeed;
+}
+
+void Hero::changeMaxSpeed(float newMaxSpeed) {
+	maxSpeed = newMaxSpeed;
 }
 
 sf::Sprite Hero::getSprite() {
@@ -344,4 +376,82 @@ void Hero::setX(float position) {
 void Hero::setY(float position) {
 	heroSprite.setPosition({ heroSprite.getPosition().x, position });
 	hitbox.setPosition(heroSprite.getPosition().x + 14, position + 1);
+}
+
+
+//Guardian Active abilities
+void Estelle::heroActive() {
+	/*
+	Estelle's abilities are learned rather than upgraded because it is
+	not her personality to want to hold back on great mechanics for the
+	hero especially if she has them. So, old mechanics will become obsolete.
+	*/
+	std::cout << "Estelle active" << std::endl;
+	if (active)
+		if (level == 0) {
+			heroptr->changeHealth(15);
+			active = false;
+		}
+		if (level == 1) {
+
+		}
+		if (level == 2) {
+
+		}
+		if (level == 3) {
+
+		}
+		if (level == 4) {
+
+		}
+}
+
+void Aiden::heroActive() {
+	/*
+	Aiden's abilities are very inconsistent and troll, so they will
+	only become crazier and more erratic the higher you level him up.
+	*/
+	std::cout << "Aiden active" << std::endl;
+	if(active)
+		if (level == 0) {
+			heroptr->changeMaxSpeed(20.0f);
+			active = false;
+		}
+}
+
+void Evangeline::heroActive() {
+	/*
+	Evangeline's more reserved and in control, so she will enhance
+	the hero's abilities the stronger you level her up as a reward.
+	*/
+	std::cout << "Evangeline active" << std::endl;
+	if(active)
+		if (level == 0) {
+			if (heroptr->getWeapon()->isRanged())
+				heroptr->getWeapon()->changeAttack(15.0f);
+			else
+				heroptr->getWeapon()->changeAttack(50.0f);
+			active = false;
+		}
+}
+
+//Passive Abilities
+void Estelle::update(float time) {
+	//Health regeneration
+	Guardian::update(time);
+	elapsed += time;
+	if (elapsed >= 5.0f) {
+		elapsed = 0.0f;
+		heroptr->changeHealth(2.0);
+	}
+}
+
+void Aiden::update(float time) {
+	Guardian::update(time);
+
+}
+
+void Evangeline::update(float time) {
+	Guardian::update(time);
+
 }
