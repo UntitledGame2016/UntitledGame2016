@@ -32,3 +32,7 @@ void Animation::update(int row, float deltaTime, bool faceRight) {
 		uvRect.width = -abs(uvRect.width);
 	}
 }
+
+void Animation::changeSwitchTime(float time) {
+	switchTime = time;
+}

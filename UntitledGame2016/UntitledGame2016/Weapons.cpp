@@ -24,10 +24,14 @@ void Bullet::draw(sf::RenderWindow& window) {
 void Bullet::move(sf::Vector2f velocity) {
 	hitbox.move(velocity);
 	bulletSprite.move(velocity);
+	if (hitbox.getPosition().x <= maxRange.x || hitbox.getPosition().x >= maxRange.y)
+		fired = false;
 }
-void Bullet::setPosition(sf::Vector2f pos) {
+void Bullet::setPosition(sf::Vector2f pos, float range) {
 	hitbox.setPosition(pos);
 	bulletSprite.setPosition(pos);
+	maxRange.x = pos.x + hitbox.getSize().x - range;
+	maxRange.y = pos.x + range;
 }
 void Bullet::toggle(bool active) {
 	fired = active;
@@ -100,8 +104,8 @@ bool Weapon::isRanged() {
 	return type;
 }
 
-Ranged::Ranged(std::string name, int durability, sf::IntRect textureRect, const float newfirerate) :
-	Weapon(name, durability, textureRect), firerate(newfirerate) {
+Ranged::Ranged(std::string name, int durability, sf::IntRect textureRect, const float range, const float newfirerate) :
+	Weapon(name, durability, textureRect), firerate(newfirerate), bulletRange(range) {
 
 	weaponHUD.setFont(font);
 	weaponHUD.setCharacterSize(15);
@@ -117,7 +121,8 @@ Ranged::Ranged(std::string name, int durability, sf::IntRect textureRect, const 
 
 void Ranged::draw(sf::RenderWindow &window) {
 	for (size_t i = 0; i < bullets.size(); i++)
-		bullets[i]->draw(window);
+		if(bullets[i]->isready())
+			bullets[i]->draw(window);
 }
 
 void Ranged::drawHUD(sf::RenderWindow &window) {
@@ -135,7 +140,7 @@ void Ranged::attack(sf::Vector2f pos, bool faceRight) {
 			else if (bullets[bulletindex]->getvel() < 0)
 				bullets[bulletindex]->changeDir(true);
 			bullets[bulletindex]->toggle(true);
-			bullets[bulletindex]->setPosition({ pos.x + 32, pos.y + 32 });
+			bullets[bulletindex]->setPosition({ pos.x + 32, pos.y + 32 }, bulletRange);
 			bulletsfired++;
 
 			std::cout << "Bullets : " << bullets.size() - bulletsfired << std::endl;
@@ -151,7 +156,7 @@ void Ranged::attack(sf::Vector2f pos, bool faceRight) {
 		return;
 }
 
-void Ranged::update(float time, std::vector<Mob *> &mobs) {
+void Ranged::update(float time, std::vector<Mob *> &mobs, sf::Vector2f pos) {
 	delay -= time;
 	std::ostringstream temp;
 	temp << durability;
@@ -162,14 +167,12 @@ void Ranged::update(float time, std::vector<Mob *> &mobs) {
 
 	for (int i = bullets.size() - 1; i > -1; i--)
 		if (bullets[i]->isready()) {
-			bullets[i]->move({ bullets[i]->getvel(), 0 });
+			bullets[i]->move({ bullets[i]->getvel(), 0});
 			for(Mob * mob : mobs)
 				if (bullets[i]->collide(mob->getSprite()) && !mob->dead()) {
 					bullets[i]->toggle(false);
 					mob->changeHealth(-damage);
-				}
-			if (bullets[i]->getPosition().x >= 1920*4 || bullets[i]->getPosition().x + bullets[i]->getHBSize().x <= 0)
-				bullets[i]->toggle(false);
+				}			
 		}
 
 }
@@ -217,7 +220,7 @@ Melee::Melee(std::string name, int durability, sf::IntRect textureRect, const fl
 	type = false;
 }
 
-void Melee::update(float time, std::vector<Mob *> &mobs) {
+void Melee::update(float time, std::vector<Mob *> &mobs, sf::Vector2f pos) {
 	delay -= time;
 
 	float hbx = fabs(hitbox.getSize().x);
@@ -234,10 +237,14 @@ void Melee::update(float time, std::vector<Mob *> &mobs) {
 
 		hbx += speed;
 
-		if (faceRight) 
+		if (faceRight) {
 			hbx = fabs(hbx);
-		else 
+			hitbox.setPosition({ pos.x + 64, pos.y + (64 + hitbox.getSize().y) / 2 });
+		}
+		else {
 			hbx = -fabs(hbx);
+			hitbox.setPosition({ pos.x, pos.y + (64 + hitbox.getSize().y) / 2 });
+		}
 
 		hitbox.setSize({ hbx, hby });
 		for(Mob * mob : mobs)
@@ -268,12 +275,6 @@ void Melee::attack(sf::Vector2f pos, bool face){
 	if (!attacking && durability > 0 && delay <= 0) {
 		delay = attackSpeed;
 		attacking = true;
-	}
-	if (faceRight) {
-		hitbox.setPosition({ pos.x + 64, pos.y + (64 + hitbox.getSize().y) / 2 });
-	}
-	else {
-		hitbox.setPosition({ pos.x, pos.y + (64 + hitbox.getSize().y) / 2 });
 	}
 }
 

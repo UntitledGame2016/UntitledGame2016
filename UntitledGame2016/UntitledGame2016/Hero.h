@@ -52,14 +52,16 @@ public:
 
 private:
 	//Gravity
-	bool jumping = true;
+	bool jumping = false;
 	bool fallRight = false;
 	bool fallLeft = false;
+	bool jumpRight = false;
+	bool jumpLeft = false;
 	int curr = 0;			//Block index
 	float jumpSpeed = 0;	//Jump is 15 pixels
 	float moveSpeed = 5.0f; //DONT FUCKING CHANGE THIS
 	float maxSpeed = 10.0f;
-	const float gravity = 1.0;
+	const float gravity = 0.75;	
 
 	sf::Vector2f view;
 public:

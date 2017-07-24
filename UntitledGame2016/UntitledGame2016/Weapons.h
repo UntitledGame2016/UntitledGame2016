@@ -15,14 +15,15 @@ class Bullet {
 	sf::Texture bulletTexture;
 	bool fired = false;
 	float velocity = 10.0f;
+	sf::Vector2f maxRange;
 
 public:
 	Bullet();
 	Bullet(TextureManager & textures, sf::IntRect bulletTexture);
 	void draw(sf::RenderWindow & window);
 	void move(sf::Vector2f velocity);
-	void setPosition(sf::Vector2f pos);
-	void toggle(bool active);
+	void setPosition(sf::Vector2f pos, float range = 1000);
+	void toggle(bool active);	
 	bool isready();
 	float getvel();
 	bool collide(sf::Sprite & obj);
@@ -49,7 +50,7 @@ public:
 	Weapon();
 	Weapon(std::string name, int durability, sf::IntRect texture = { 0, 0, 64, 64 });
 	virtual void attack(sf::Vector2f pos, bool faceRight) {};
-	virtual void update(float time, std::vector<Mob *> &mobs) {};
+	virtual void update(float time, std::vector<Mob *> &mobs, sf::Vector2f pos) {};
 	virtual void draw(sf::RenderWindow &window);
 	virtual void drawHUD(sf::RenderWindow &window);
 	virtual void reload(int newBullets) {};
@@ -64,14 +65,15 @@ class Ranged : public Weapon{
 	unsigned int bulletindex = 0;
 	float firerate;
 	float delay = 0;
+	float bulletRange;
 
 	sf::Text weaponHUD;
 public:
-	Ranged(std::string name, int durability, sf::IntRect textureRect, const float firerate = 0.45f);
+	Ranged(std::string name, int durability, sf::IntRect textureRect, const float range = 1000.0f, const float firerate = 0.45f);
 	void draw(sf::RenderWindow &window);
 	void drawHUD(sf::RenderWindow &window);
 	void attack(sf::Vector2f pos, bool faceRight);
-	void update(float time, std::vector<Mob *> &mobs);
+	void update(float time, std::vector<Mob *> &mobs, sf::Vector2f pos);
 	void reload(int newBullets);
 };
 
@@ -87,7 +89,7 @@ class Melee : public Weapon {
 public:
 	Melee();
 	Melee(std::string name, int durability, sf::IntRect textureRect, const float firerate = 0.45f, float range = 50.0f);
-	void update(float time, std::vector<Mob *> &mobs);
+	void update(float time, std::vector<Mob *> &mobs, sf::Vector2f pos);
 	void attack(sf::Vector2f pos, bool faceRight);
 	void draw(sf::RenderWindow &window);
 	void drawHUD(sf::RenderWindow &window);

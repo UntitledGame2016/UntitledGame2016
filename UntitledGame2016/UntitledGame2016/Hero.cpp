@@ -47,9 +47,9 @@ Hero::Hero(sf::Vector2f newPos) : row(0){
 		angle += pi / (maxhp / 2);
 	}
 
-	weapons.push_back(new Ranged("Gun", 10, { 0, 0, 64, 64 }));
+	weapons.push_back(new Ranged("Gun", 10, { 0, 0, 64, 64 }, 600));
 	weapons.push_back(new Melee("Sword", 10, { 0, 0, 64, 64 }, 0.5f));
-	weapons.push_back(new Ranged("Machine Gun", 200, { 0, 0, 64,64 }, 0.1f));
+	weapons.push_back(new Ranged("Machine Gun", 200, { 0, 0, 64,64 }, 500, 0.1f));
 	weapon = weapons[0];
 
 	guardians.push_back(new Estelle(*this));
@@ -100,41 +100,51 @@ void Hero::update(float time, sf::Vector2f viewCoor, std::vector<Block *> blocks
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
 		row = 8;
+		animation->changeSwitchTime(0.03);
 		if (moveSpeed <= maxSpeed && (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) && !jumping)
 			moveSpeed += 0.5f;
 	}
-	else
+	else {
+		animation->changeSwitchTime(0.08);
 		if (moveSpeed > 3.5)
 			moveSpeed -= 0.3f;
+	}
 
 	//Keys
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && !jumping) {
 		move({ 0, jumpSpeed });
 		jumping = true;
-		for (size_t i = 0; i < blocks.size(); i++) 
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+			jumpRight = true;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+			jumpLeft = true;
+		for (size_t i = 0; i < blocks.size(); i++)
 			if (curr != i && blocks[i]->colliding(hitbox)) {
 				std::cout << "Bottom Collision" << std::endl;
 				jumping = false;
-				jumpSpeed = 0;
+				move({ 0, -jumpSpeed });
 				break;
 			}
-		curr = -1;
+		if (jumping)
+			curr = -1;
 	}
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-		if(!sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || jumpRight) {
+		if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 			row = 1;
-		if(!weapon->isattacking())
+		if (!weapon->isattacking())
 			faceRight = true;
 		move({ moveSpeed, 0 });
-		if (fallLeft && (blocks[curr]->getY() + blocks[curr]->getSize().y) >= hitbox.getPosition().y) 
-			move({ -moveSpeed, 0 });
-		if (!jumping && !blocks[curr]->colliding(hitbox)) {
-			fallRight = true;
-			jumpSpeed = 0;
-			jumping = true;
+		if (curr != -1) {
+			if (fallLeft && (blocks[curr]->getY() + blocks[curr]->getSize().y) >= hitbox.getPosition().y)
+				move({ -moveSpeed, 0 });
+			if (!jumping && !blocks[curr]->colliding(hitbox)) {
+				fallRight = true;
+				jumpSpeed = 0;
+				jumping = true;
+			}
 		}
-		for (size_t i = 0; i < blocks.size(); i++) 
+		for (size_t i = 0; i < blocks.size(); i++)
 			if (curr != i && blocks[i]->colliding(hitbox)) {
 				std::cout << "Left Collision" << std::endl;
 				move({ -moveSpeed, 0 });
@@ -142,18 +152,20 @@ void Hero::update(float time, sf::Vector2f viewCoor, std::vector<Block *> blocks
 			}
 	}
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || jumpLeft) {
 		if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 			row = 1;
-		if(!weapon->isattacking())
+		if (!weapon->isattacking())
 			faceRight = false;
 		move({ -moveSpeed, 0 });
-		if (fallRight && (blocks[curr]->getY() + blocks[curr]->getSize().y) >= hitbox.getPosition().y) 
-			move({ moveSpeed, 0 });
-		if (!jumping && !blocks[curr]->colliding(hitbox)) {
-			fallLeft = true;
-			jumpSpeed = 0;
-			jumping = true;
+		if (curr != -1) {
+			if (fallRight && (blocks[curr]->getY() + blocks[curr]->getSize().y) >= hitbox.getPosition().y)
+				move({ moveSpeed, 0 });
+			if (!jumping && !blocks[curr]->colliding(hitbox)) {
+				fallLeft = true;
+				jumpSpeed = 0;
+				jumping = true;
+			}
 		}
 		for (size_t i = 0; i < blocks.size(); i++) {
 			if (curr != i && blocks[i]->colliding(hitbox)) {
@@ -179,8 +191,8 @@ void Hero::update(float time, sf::Vector2f viewCoor, std::vector<Block *> blocks
 				}
 				else {
 					setY(blocks[i]->getY());
-					jumpSpeed = -15;
-					jumping = false, fallLeft = false, fallRight = false;
+					jumpSpeed = -13;
+					jumping = false, fallLeft = false, fallRight = false; jumpRight = false; jumpLeft = false;
 					curr = i;
 					collisions = true;
 					break;
@@ -236,8 +248,8 @@ void Hero::update(float time, sf::Vector2f viewCoor, std::vector<Block *> blocks
 			row = 3;
 		}
 
-	for(Weapon * w: weapons)
-		w->update(time, mobs);
+	for (Weapon * w : weapons)
+		w->update(time, mobs, getPosition());
 	guardians[gIndex]->update(time);
 	animation->update(row, time, faceRight);
 	heroSprite.setTextureRect(animation->uvRect);
@@ -286,7 +298,7 @@ void Hero::changeHealth(double x) { //HUD
 		hpindex = temp;
 	}
 	if (hp <= 0) { //Death
-		name.setString("You're dead LUL");
+		name.setString("You died.");
 		deathMessage.setString("RIP");
 		deathMessage.setPosition({ view.x + 75, view.y + 80 });
 		healthOverlay.setFillColor(sf::Color::Black);

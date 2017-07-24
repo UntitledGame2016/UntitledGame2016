@@ -43,7 +43,7 @@ int main() {
 	//Mobs
 	std::vector<Mob *> mobs;
 	mobs.push_back(new Mob(textures, { 700, 834 }, 100));
-	mobs.push_back(new Mob(textures, { 2000, 900 }, 100));
+	mobs.push_back(new Mob(textures, { 1500, 900 }, 100));
 	mobs.push_back(new Mob(textures, { 1000, 834 }, 100));
 	mobs.push_back(new Mob(textures, { 300, 934 }, 100));
 
@@ -55,9 +55,9 @@ int main() {
 	blockScript.push_back(std::pair<sf::Vector2u, float>({ 300, 300 }, 1.0f));
 	blockScript.push_back(std::pair<sf::Vector2u, float>({ 300, 0 }, 1.0f));
 
-	blocks.push_back(new Block({ 0, 1000 } , { 2500, 64 }, "boxSprite.png"));
+	blocks.push_back(new Block({ 0, 1000 } , { 10000, 64 }, "boxSprite.png"));
 	blocks.push_back(new Block({ 0, 850 }, { 100, 100 }));
-	blocks.push_back(new Block({ 540, 900 }, { 1000, 64 }, "boxSprite.png"));	
+	blocks.push_back(new Block({ 1040, 900 }, { 1000, 64 }, "boxSprite.png"));	
 	blocks.push_back(new Block({ 0, 300 }, { 64, 64 }, "boxSprite.png", &blockScript));
 
 	sf::CircleShape s;
@@ -74,7 +74,7 @@ int main() {
 	sf::Time animationdelay = sf::seconds(5.0f);
 	float viewdx = 0;
 	sf::View view(sf::FloatRect({ 0, 0, width, height }));
-	hero.godMode(true);
+	hero.godMode(false);
 
 	while (window.isOpen()) {
 		// -- Events -- 
