@@ -2,14 +2,17 @@
 #define MOBS_H
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include "Collision.h"
-#include "TextureManager.h"
+#include "FileManager.h"
 
 class Mob {
 	sf::Sprite sprite;
 	sf::RectangleShape hitbox;
 	sf::RectangleShape healthbar;
 	sf::Texture texture;
+	AudioManager mobSounds;
+	sf::Sound mobDeath;
 
 	float barLength;
 	float health;

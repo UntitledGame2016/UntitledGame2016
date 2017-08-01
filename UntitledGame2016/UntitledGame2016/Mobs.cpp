@@ -14,6 +14,10 @@ Mob::Mob(TextureManager &textures, sf::Vector2f newpos, int health) : health(hea
 	texture = textures.loadTexture("weapons_spritesheet.png");
 	sprite.setPosition(hitbox.getPosition());
 	sprite.setTexture(texture);
+
+	mobSounds.addSound("mob_death.wav");
+	mobDeath.setBuffer(mobSounds.loadSound("mob_death.wav"));
+
 }
 
 void Mob::setPosition(sf::Vector2f pos) {
@@ -39,24 +43,28 @@ bool Mob::collide(sf::RectangleShape &obj) {
 }
 
 void Mob::update(float time) {
-	//
 }
 
 void Mob::changeHealth(const int hp) {
 	health += hp;
 	if (hp < 0)
-		if (health < 0)
+		if (health < 0) {
 			health = 0;
+		}
 	else 
 		if (health > maxHealth)
 			health = maxHealth;
+
+	if(health == 0)
+		mobDeath.play();
 	float temp = barLength * (health / maxHealth);
-	std::cout << health << " " << maxHealth << " " << temp << " " << health / maxHealth << std::endl;
+	//std::cout << health << " " << maxHealth << " " << temp << " " << health / maxHealth << std::endl;
 	healthbar.setSize({ temp, 10 });
 }
 
 bool Mob::dead() {
-	if (health > 0)
+	if (health > 0) {
 		return false;
+	}
 	return true;
 }

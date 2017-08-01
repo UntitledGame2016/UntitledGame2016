@@ -1,8 +1,9 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include "Hero.h"
 #include "Weapons.h"
 #include "Mobs.h"
-#include "TextureManager.h"
+#include "FileManager.h"
 
 using namespace Collision;
 
@@ -28,37 +29,46 @@ int main() {
 
 	//Textures
 	TextureManager textures;
+	textures.addTexture("sample_spritesheet.png");
 	textures.addTexture("weapons_spritesheet.png");
 	textures.addTexture("sample_spritesheet.png");
 	textures.addTexture("box.png");
 	textures.addTexture("box2.png");
 	textures.addTexture("mob.png");
 	textures.addTexture("bullet.png");
+	textures.addTexture("Aiden_TB.png");
+	textures.addTexture("Evangeline_TB.png");
+	textures.addTexture("Estelle_TB.png");
 
 	//Hero and Weapons 
-	Hero hero({ 500, 786 });
+	Hero hero({ 500, 786 }, textures);
 	//hero.showHitBox();
 	int weaponIndex = 0;
 
 	//Mobs
+	std::cout << "Spawning mobs..." << std::endl;
 	std::vector<Mob *> mobs;
 	mobs.push_back(new Mob(textures, { 700, 834 }, 100));
-	mobs.push_back(new Mob(textures, { 1500, 900 }, 100));
+	mobs.push_back(new Mob(textures, { 400, 834 }, 100));
+	mobs.push_back(new Mob(textures, { 1500, 834 }, 100));
 	mobs.push_back(new Mob(textures, { 1000, 834 }, 100));
 	mobs.push_back(new Mob(textures, { 300, 934 }, 100));
+	mobs.push_back(new Mob(textures, { 1800, 834 }, 100));
+	std::cout << "Mobs spawned." << std::endl;
 
 	//Level design
+	std::cout << "Creating level..." << std::endl;
 	std::vector<Block *> blocks;
 	std::vector<std::pair<sf::Vector2u, float>> blockScript;
-	blockScript.push_back(std::pair<sf::Vector2u, float>({ 100, 300 }, 1.0f));
-	blockScript.push_back(std::pair<sf::Vector2u, float>({ 0, 300 }, 1.0f));
-	blockScript.push_back(std::pair<sf::Vector2u, float>({ 300, 300 }, 1.0f));
-	blockScript.push_back(std::pair<sf::Vector2u, float>({ 300, 0 }, 1.0f));
+	blockScript.push_back(std::pair<sf::Vector2u, float>({ 500, 400 }, 2.0f));
+	blockScript.push_back(std::pair<sf::Vector2u, float>({ 1000, 900 }, 5.0f));
+	blockScript.push_back(std::pair<sf::Vector2u, float>({ 1000, 300 }, 5.0f));
+	blockScript.push_back(std::pair<sf::Vector2u, float>({ 100, 900 }, 0.8f));
 
 	blocks.push_back(new Block({ 0, 1000 } , { 10000, 64 }, "boxSprite.png"));
 	blocks.push_back(new Block({ 0, 850 }, { 100, 100 }));
 	blocks.push_back(new Block({ 1040, 900 }, { 1000, 64 }, "boxSprite.png"));	
-	blocks.push_back(new Block({ 0, 300 }, { 64, 64 }, "boxSprite.png", &blockScript));
+	blocks.push_back(new Block({ 500, 1000 }, { 64, 64 }, "boxSprite.png", &blockScript));
 
 	sf::CircleShape s;
 	sf::Texture d;
@@ -74,7 +84,17 @@ int main() {
 	sf::Time animationdelay = sf::seconds(5.0f);
 	float viewdx = 0;
 	sf::View view(sf::FloatRect({ 0, 0, width, height }));
-	hero.godMode(false);
+	std::cout << "Level complete." << std::endl;
+
+	hero.godMode(true);
+
+	sf::Music music;
+	if (!music.openFromFile("songs/level01.ogg"))
+		std::cout << "Error playing song." << std::endl;
+	music.setLoop(true);
+	music.setVolume(75);
+	music.play();
+	music.setPlayingOffset(sf::seconds(62));
 
 	while (window.isOpen()) {
 		// -- Events -- 
@@ -143,8 +163,10 @@ int main() {
 		//Player
 		hero.draw(window);
 
-		for (Mob * a : mobs)
+		for (Mob * a : mobs) {
+			//a->update(cl.getElapsedTime().asSeconds());
 			a->draw(window);
+		}
 
 		sf::View view2(window.getDefaultView());
 		window.setView(view2);

@@ -10,13 +10,13 @@ private:
 	sf::Texture heroTexture;
 	sf::Sprite heroSprite;
 	Animation * animation;
-	TextureManager textures;
+	TextureManager * allTextures;
 
 	bool faceRight;
 	unsigned int row;
 public:
 	sf::RectangleShape hitbox;
-	Hero(sf::Vector2f newpos);
+	Hero(sf::Vector2f newpos, TextureManager &textures);
 	void showHitBox();
 	sf::Sprite getSprite();
 	sf::Vector2f getPosition();
@@ -35,6 +35,7 @@ private:
 
 	int gIndex;
 	std::vector<Guardian *> guardians;
+	float changeWindow = 0;
 	bool alive = true;
 	bool god = false;
 public:
@@ -49,10 +50,9 @@ private:
 public:
 	Weapon* getWeapon();
 	void wield(Weapon * w);
-
 private:
 	//Gravity
-	bool jumping = false;
+	bool jumping = true;
 	bool fallRight = false;
 	bool fallLeft = false;
 	bool jumpRight = false;
@@ -82,8 +82,6 @@ public:
 	bool BBcollide(const sf::Sprite & obj2);
 	sf::FloatRect getGlobalBounds();
 	sf::FloatRect getGlobalBounds2();
-
-
 };
 
 

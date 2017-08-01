@@ -3,7 +3,7 @@
 
 #include <SFML\Graphics.hpp>
 #include "Collision.h"
-#include "TextureManager.h"
+#include "FileManager.h"
 #include <map>
 
 class Block {

@@ -2,25 +2,30 @@
 #define GUARDIAN_H
 
 #include <iostream>
-#include "TextureManager.h"
+#include "FileManager.h"
 #include "Weapons.h"
 //#include "Animation.h"
 
 class Hero;
 
 class Guardian {
-	sf::Sprite guardianSprite;
 	Animation * animation;
-	TextureManager textures;
 protected:
 	Hero * heroptr;
 	int level;
 	int loyalty;
 	bool active;
 	float elapsed = 0;
+	sf::Text nameText;
+	sf::Font nameFont;
+	std::string name;
 	sf::CircleShape icon;
+	TextureManager * guardianTextures;
+	sf::Texture guardianTexture;
+	sf::Sprite guardianSprite;
 public:
-	Guardian(Hero &hero);
+	Guardian(Hero &hero, TextureManager &textures);
+	std::string getName();
 	virtual void heroActive() {};
 	virtual void update(float time);
 	void setPosition(sf::Vector2f pos);
@@ -33,7 +38,7 @@ public:
 class Estelle : public Guardian {
 
 public:
-	Estelle(Hero &hero);
+	Estelle(Hero &hero, TextureManager &textures);
 	void heroActive();
 	void update(float time);
 };
@@ -41,7 +46,7 @@ public:
 class Evangeline : public Guardian {
 
 public:
-	Evangeline(Hero &hero);
+	Evangeline(Hero &hero, TextureManager &textures);
 	void heroActive();
 	void update(float time);
 };
@@ -49,7 +54,7 @@ public:
 class Aiden : public Guardian {
 
 public:
-	Aiden(Hero &hero);
+	Aiden(Hero &hero, TextureManager &textures);
 	void heroActive();
 	void update(float time);
 };

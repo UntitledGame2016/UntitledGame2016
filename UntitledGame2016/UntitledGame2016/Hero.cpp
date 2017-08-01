@@ -1,15 +1,16 @@
 #include "Hero.h"
 
-Hero::Hero(sf::Vector2f newPos) : row(0){
-	textures.addTexture("sample_spritesheet.png");
-	heroTexture = textures.loadTexture("sample_spritesheet.png");
+Hero::Hero(sf::Vector2f newPos, TextureManager &textures) : row(0), allTextures(&textures){
+	std::cout << "Creating hero..." << std::endl;
+
+	heroTexture = allTextures->loadTexture("sample_spritesheet.png");
 	heroSprite.setPosition(newPos);
 	heroSprite.setTexture(heroTexture);
 	hitbox.setSize({ 36, 63 });
 	hitbox.setPosition(newPos.x + 14, newPos.y + 1);
 	hitbox.setFillColor(sf::Color::Transparent);
 
-	animation = new Animation(heroTexture, sf::Vector2u(4,16), 0.08f);
+	animation = new Animation(heroTexture, sf::Vector2u(4,16), 0.09f);
 	faceRight = false;
 	
 	if (!nameFont.loadFromFile("fonts/arial.ttf"))
@@ -29,8 +30,8 @@ Hero::Hero(sf::Vector2f newPos) : row(0){
 	deathMessage.setStyle(sf::Text::Bold);
 	deathMessage.setPosition({ 75.0f, 80.0f });
 
-	healthOverlay.setRadius(50.0f);
-	healthOverlay.setPosition({ 50.0f, 50.0f });
+	healthOverlay.setRadius(50);
+	healthOverlay.setPosition({ 50, 50 });
 	healthOverlay.setFillColor(sf::Color::Transparent);
 	healthOverlay.setOutlineColor(sf::Color::Black);
 	healthOverlay.setOutlineThickness(2);
@@ -47,15 +48,17 @@ Hero::Hero(sf::Vector2f newPos) : row(0){
 		angle += pi / (maxhp / 2);
 	}
 
-	weapons.push_back(new Ranged("Gun", 10, { 0, 0, 64, 64 }, 600));
-	weapons.push_back(new Melee("Sword", 10, { 0, 0, 64, 64 }, 0.5f));
-	weapons.push_back(new Ranged("Machine Gun", 200, { 0, 0, 64,64 }, 500, 0.1f));
+	weapons.push_back(new Ranged("Gun", 10, { 0, 0, 64, 64 }, 500));
+	weapons.push_back(new Melee("Sword", 10, { 0, 0, 64, 64 }, 10.0f));
+	weapons.push_back(new Ranged("Machine Gun", 50, { 0, 0, 64,64 }, 750, 0.1f));
 	weapon = weapons[0];
 
-	guardians.push_back(new Estelle(*this));
-	guardians.push_back(new Aiden(*this));
-	guardians.push_back(new Evangeline(*this));
+	guardians.push_back(new Estelle(*this, textures));
+	guardians.push_back(new Aiden(*this, textures));
+	guardians.push_back(new Evangeline(*this, textures));
 	gIndex = 0;
+
+	std::cout << "Hero has spawned." << std::endl;
 }
 
 void Hero::drawHUD(sf::RenderWindow &window) {
@@ -100,12 +103,12 @@ void Hero::update(float time, sf::Vector2f viewCoor, std::vector<Block *> blocks
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
 		row = 8;
-		animation->changeSwitchTime(0.03);
+		animation->changeSwitchTime(0.04);
 		if (moveSpeed <= maxSpeed && (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) && !jumping)
 			moveSpeed += 0.5f;
 	}
 	else {
-		animation->changeSwitchTime(0.08);
+		animation->changeSwitchTime(0.09);
 		if (moveSpeed > 3.5)
 			moveSpeed -= 0.3f;
 	}
@@ -201,7 +204,6 @@ void Hero::update(float time, sf::Vector2f viewCoor, std::vector<Block *> blocks
 			move({ 0, -tempSpeed - gravity });
 		}
 		if (!collisions) { //If still in the air
-			row = 13;
 			jumpSpeed += gravity;
 			move({ 0, jumpSpeed });
 		}
@@ -230,16 +232,33 @@ void Hero::update(float time, sf::Vector2f viewCoor, std::vector<Block *> blocks
 		weapon_index = 2;
 	}
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Tab)) {
-		std::cout << "Guardian Index: " << gIndex << std::endl;
+	changeWindow += time;
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) && changeWindow >= 0.15f) {
+		changeWindow = 0;
+		std::cout << "Current Guardian: " << guardians[gIndex]->getName() << std::endl;
 		if (gIndex < guardians.size() - 1)
 			gIndex++;
 		else
 			gIndex = 0;
+	} else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) && changeWindow >= 0.15f) {
+		changeWindow = 0;
+		std::cout << "Current Guardian: " << guardians[gIndex]->getName() << std::endl;
+		if (gIndex > 0)
+			gIndex--;
+		else
+			gIndex = guardians.size() - 1;
 	}
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
 		guardians[gIndex]->heroActive();
+	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::R) && changeWindow >= 1.0f) {
+		changeWindow = 0;
+		if (weapon->isRanged())
+			weapon->reload(10);
+		else
+			weapon->repair(10);
 	}
 
 	for (Mob * mob : mobs) 
@@ -256,6 +275,7 @@ void Hero::update(float time, sf::Vector2f viewCoor, std::vector<Block *> blocks
 }
 
 void Hero::wield(Weapon * w) {
+	w->playWield();
 	weapon = w;
 }
 
@@ -267,7 +287,7 @@ void Hero::changeHealth(double x) { //HUD
 	if (god)
 		x = 0;
 	if (x < -maxhp) {
-		std::cout << "Damage cannot exceed available health" << std::endl;
+		std::cout << "One hit attacks are not allowed." << std::endl;
 		return;
 	}
 	hp += x;
@@ -308,6 +328,10 @@ void Hero::changeHealth(double x) { //HUD
 }
 
 void Hero::godMode(bool toggle) {
+	if (toggle)
+		std::cout << "God mode: ON" << std::endl;
+	else
+		std::cout << "God mode: OFF" << std::endl;
 	god = toggle;
 }
 
@@ -336,27 +360,10 @@ sf::Sprite Hero::getSprite() {
 	return heroSprite;
 }
 
-//pixel perfect test
-/*bool Hero::PPcollide(Foreign &object) {
-return Collision::PixelPerfectTest(heroSprite, object.getSprite());
-}*/
-
 //bounding test
 bool Hero::BBcollide(const sf::Sprite &obj2) {
 	return Collision::BoundingBoxTest(heroSprite, obj2);
 }
-
-//For Foreign Objects (does not use perfect pixel collision)
-/*bool Hero::GBcollide(Foreign &object) {
-if (delay <= 0) {
-if (hitbox.getGlobalBounds().intersects(object.getGlobalBounds())) {
-delay = cooldown;
-return true;
-}
-return false;
-}
-return false;
-}*/
 
 sf::FloatRect Hero::getGlobalBounds() {
 	return hitbox.getGlobalBounds();

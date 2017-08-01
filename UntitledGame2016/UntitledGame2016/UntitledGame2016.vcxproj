@@ -26,7 +26,7 @@
     <ClInclude Include="Weapons.h" />
     <ClInclude Include="Hero.h" />
     <ClInclude Include="Mobs.h" />
-    <ClInclude Include="TextureManager.h" />
+    <ClInclude Include="FileManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation.cpp" />
@@ -36,7 +36,7 @@
     <ClCompile Include="Hero.cpp" />
     <ClCompile Include="Mobs.cpp" />
     <ClCompile Include="Source.cpp" />
-    <ClCompile Include="TextureManager.cpp" />
+    <ClCompile Include="FileManager.cpp" />
     <ClCompile Include="Weapons.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

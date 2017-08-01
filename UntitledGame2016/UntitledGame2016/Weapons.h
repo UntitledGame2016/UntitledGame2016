@@ -14,9 +14,8 @@ class Bullet {
 	sf::Sprite bulletSprite;
 	sf::Texture bulletTexture;
 	bool fired = false;
-	float velocity = 10.0f;
+	float velocity = 25.0f;
 	sf::Vector2f maxRange;
-
 public:
 	Bullet();
 	Bullet(TextureManager & textures, sf::IntRect bulletTexture);
@@ -27,18 +26,23 @@ public:
 	bool isready();
 	float getvel();
 	bool collide(sf::Sprite & obj);
-	void changeDir(bool i);
+	void changeFaceRight(bool i);
 	sf::Vector2f getHBSize();
 	sf::Vector2f getPosition();
-
 };
 
 /*								Weapons								*/
 class Weapon {
-	TextureManager textures;
-	sf::Sprite weaponSprite;
-	sf::Texture weaponTexture;
 	sf::Text name;
+protected:
+	AudioManager weaponSounds;
+	sf::Sound attackSound;
+	sf::Sound reloadSound;
+	sf::Sound wieldSound;
+	sf::Sound swingSound;
+	int randomSound = 0;
+public:
+	void playWield();
 protected:
 	float damage;
 	bool type;
@@ -54,6 +58,7 @@ public:
 	virtual void draw(sf::RenderWindow &window);
 	virtual void drawHUD(sf::RenderWindow &window);
 	virtual void reload(int newBullets) {};
+	virtual void repair(int newDura) {};
 	virtual bool isattacking() { return false; };
 	virtual void changeAttack(float newDmg);
 	virtual bool isRanged();
@@ -67,7 +72,7 @@ class Ranged : public Weapon{
 	float delay = 0;
 	float bulletRange;
 
-	sf::Text weaponHUD;
+	sf::Text weaponDura;
 public:
 	Ranged(std::string name, int durability, sf::IntRect textureRect, const float range = 1000.0f, const float firerate = 0.45f);
 	void draw(sf::RenderWindow &window);
@@ -83,15 +88,14 @@ class Melee : public Weapon {
 	float range;
 	float attackSpeed;
 	float delay = 0;
-	float speed;
-
-	sf::Text weaponHUD;
+	sf::Text weaponDura;
 public:
 	Melee();
-	Melee(std::string name, int durability, sf::IntRect textureRect, const float firerate = 0.45f, float range = 50.0f);
+	Melee(std::string name, int durability, sf::IntRect textureRect, float newSpeed = 0.45f, float range = 50.0f);
 	void update(float time, std::vector<Mob *> &mobs, sf::Vector2f pos);
 	void attack(sf::Vector2f pos, bool faceRight);
 	void draw(sf::RenderWindow &window);
+	void repair(int newDura);
 	void drawHUD(sf::RenderWindow &window);
 	bool isattacking();
 };

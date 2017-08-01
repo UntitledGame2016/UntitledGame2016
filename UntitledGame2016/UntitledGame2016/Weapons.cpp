@@ -45,9 +45,11 @@ float Bullet::getvel() {
 bool Bullet::collide(sf::Sprite &obj) {
 	return Collision::BoundingBoxTest(bulletSprite, obj);
 }
-void Bullet::changeDir(bool i) {
-	if (i && velocity < 0 || !i && velocity > 0)
-		velocity *= -1;
+void Bullet::changeFaceRight(bool i) {
+	if (i)
+		velocity = fabs(velocity);
+	else
+		velocity = -fabs(velocity);
 }
 
 sf::Vector2f Bullet::getHBSize() {
@@ -59,32 +61,34 @@ sf::Vector2f Bullet::getPosition() {
 }
 
 Weapon::Weapon() {
-	textures.addTexture("weapons_spritesheet.png");
-	weaponTexture = textures.loadTexture("weapons_spritesheet.png");
-	weaponSprite.setTexture(weaponTexture);
-	weaponSprite.setTextureRect({ 0, 0, 64, 64 });
 	durability = 10;
 
 	name.setString("Fist");
 }
 
-Weapon::Weapon(std::string weaponName, int durability, sf::IntRect textureRect) : durability(durability) {
-	textures.addTexture("weapons_spritesheet.png");
-	weaponTexture = textures.loadTexture("weapons_spritesheet.png");
-	weaponSprite.setTexture(weaponTexture);
-	weaponSprite.setTextureRect(textureRect);
-	weaponSprite.setPosition(500, 500);
-
-	maxDurability = durability;
-
+Weapon::Weapon(std::string weaponName, int durability, sf::IntRect textureRect) : durability(durability), maxDurability(durability) {
+	
 	if (!font.loadFromFile("fonts/arial.ttf"))
 		std::cout << "Font not loaded" << std::endl;
 
 	name.setFont(font);
 	name.setString(weaponName);
-	name.setCharacterSize(15);
+	name.setCharacterSize(20);
 	name.setFillColor(sf::Color::Black);
-	name.setPosition({ 180, 20 });
+	name.setPosition({ 50, 175 });
+
+	weaponSounds.addSound("m4.ogx");
+	weaponSounds.addSound("m4_reload.wav");
+	weaponSounds.addSound("miniuzi_9mm.wav");
+	weaponSounds.addSound("miniuzi_9mm_reload.wav");
+	weaponSounds.addSound("sword_unsheath.wav");
+	weaponSounds.addSound("sword_hit01.wav");
+	weaponSounds.addSound("sword_hit02.wav");
+	weaponSounds.addSound("sword_hit03.wav");
+	weaponSounds.addSound("sword_swing01.wav");
+	weaponSounds.addSound("sword_swing02.wav");
+	weaponSounds.addSound("sword_swing03.wav");
+	weaponSounds.addSound("sword_repair.wav");
 }
 
 void Weapon::draw(sf::RenderWindow &window) {
@@ -104,19 +108,36 @@ bool Weapon::isRanged() {
 	return type;
 }
 
+void Weapon::playWield() {
+	wieldSound.play();
+}
+
 Ranged::Ranged(std::string name, int durability, sf::IntRect textureRect, const float range, const float newfirerate) :
 	Weapon(name, durability, textureRect), firerate(newfirerate), bulletRange(range) {
 
-	weaponHUD.setFont(font);
-	weaponHUD.setCharacterSize(15);
-	weaponHUD.setFillColor(sf::Color::Black);
-	weaponHUD.setPosition({ 300, 20 });
+	if (newfirerate < 0.25f) {
+		wieldSound.setBuffer(weaponSounds.loadSound("miniuzi_9mm_reload.wav"));
+		attackSound.setBuffer(weaponSounds.loadSound("miniuzi_9mm.wav"));
+		reloadSound.setBuffer(weaponSounds.loadSound("miniuzi_9mm_reload.wav"));
+	}
+	else {
+		wieldSound.setBuffer(weaponSounds.loadSound("m4_reload.wav"));
+		attackSound.setBuffer(weaponSounds.loadSound("m4.ogx"));
+		reloadSound.setBuffer(weaponSounds.loadSound("m4_reload.wav"));
+		attackSound.setVolume(50);
+	}
+	weaponDura.setFont(font);
+	weaponDura.setCharacterSize(20);
+	weaponDura.setFillColor(sf::Color::Black);
+	weaponDura.setPosition({ 50, 200 });
 
 	for (int i = 0; i < durability; i++)
 		bullets.push_back(new Bullet());
 
 	damage = 5.0f;
 	type = true;
+
+	std::cout << "Ranged Weapon created." << std::endl;
 }
 
 void Ranged::draw(sf::RenderWindow &window) {
@@ -127,30 +148,30 @@ void Ranged::draw(sf::RenderWindow &window) {
 
 void Ranged::drawHUD(sf::RenderWindow &window) {
 	Weapon::draw(window);
-	window.draw(weaponHUD);
+	window.draw(weaponDura);
 }
 
 
 void Ranged::attack(sf::Vector2f pos, bool faceRight) {
 	if (bullets.size() > 1 && delay <= 0) {
 		delay = firerate;
-		if (bulletindex < bullets.size()) {
-			if (!faceRight && bullets[bulletindex]->getvel() > 0)
-				bullets[bulletindex]->changeDir(false);
-			else if (bullets[bulletindex]->getvel() < 0)
-				bullets[bulletindex]->changeDir(true);
-			bullets[bulletindex]->toggle(true);
+		if (durability > 0) {
+			attackSound.play();
+			if (faceRight)
+				bullets[bulletindex]->changeFaceRight(true);
+			else
+				bullets[bulletindex]->changeFaceRight(false);
+			if(!bullets[bulletindex]->isready())
+				bullets[bulletindex]->toggle(true);
 			bullets[bulletindex]->setPosition({ pos.x + 32, pos.y + 32 }, bulletRange);
+			durability--;
 			bulletsfired++;
-
-			std::cout << "Bullets : " << bullets.size() - bulletsfired << std::endl;
-			durability = bullets.size() - bulletsfired;
+			bulletindex++;
+			if (bulletindex == bullets.size())
+				bulletindex = 0;
 		}
-		else {
-			durability = 0;
-			std::cout << "You're out of ammo." << std::endl;
-		}
-		bulletindex++;
+		else 
+			durability == 0;
 	}
 	else
 		return;
@@ -161,10 +182,9 @@ void Ranged::update(float time, std::vector<Mob *> &mobs, sf::Vector2f pos) {
 	std::ostringstream temp;
 	temp << durability;
 	if (durability > 0)
-		weaponHUD.setString(temp.str());
+		weaponDura.setString(temp.str());
 	else
-		weaponHUD.setString("You're out of ammo.");
-
+		weaponDura.setString("You're out of ammo.");
 	for (int i = bullets.size() - 1; i > -1; i--)
 		if (bullets[i]->isready()) {
 			bullets[i]->move({ bullets[i]->getvel(), 0});
@@ -172,21 +192,19 @@ void Ranged::update(float time, std::vector<Mob *> &mobs, sf::Vector2f pos) {
 				if (bullets[i]->collide(mob->getSprite()) && !mob->dead()) {
 					bullets[i]->toggle(false);
 					mob->changeHealth(-damage);
-				}			
+				}
 		}
-
 }
 
 void Ranged::reload(int newBullets) {
-	delay = firerate;
-
-	if (newBullets + (bullets.size() - bulletsfired) > maxDurability)
-		newBullets = bullets.size() - bulletsfired;
-
-	for (int i = 0; i < newBullets; i++)
-		bullets.push_back(new Bullet());
-
-	durability = bullets.size() - bulletsfired;
+	std::cout << maxDurability << " " << durability << std::endl;
+	reloadSound.play();
+	if (durability < maxDurability) {
+		durability += newBullets;
+		if (durability > maxDurability) {
+			durability = maxDurability;
+		}
+	}
 }
 
 Melee::Melee() {
@@ -195,29 +213,42 @@ Melee::Melee() {
 	hitbox.setFillColor(sf::Color::Yellow);
 	attacking = false;
 
-	weaponHUD.setFont(font);
-	weaponHUD.setCharacterSize(15);
-	weaponHUD.setFillColor(sf::Color::Black);
-	weaponHUD.setPosition({ 300, 20 });
+	weaponDura.setFont(font);
+	weaponDura.setCharacterSize(20);
+	weaponDura.setFillColor(sf::Color::Black);
+	weaponDura.setPosition({ 50, 200 });
 
 	damage = 25.0f;
+
+	std::cout << "Melee Weapon created." << std::endl;
 }
 
-Melee::Melee(std::string name, int durability, sf::IntRect textureRect, const float attackSpeed, float range ) :
-	Weapon(name, durability, textureRect), attackSpeed(attackSpeed), range(range){
+Melee::Melee(std::string name, int durability, sf::IntRect textureRect, float newSpeed, float range ) :
+	Weapon(name, durability, textureRect), range(range){
 	hitbox.setSize({2, 15});
 	hitbox.setPosition({ 0, 0 });
 	hitbox.setFillColor(sf::Color::Black);
 	attacking = false;
 
-	weaponHUD.setFont(font);
-	weaponHUD.setCharacterSize(15);
-	weaponHUD.setFillColor(sf::Color::Black);
-	weaponHUD.setPosition({ 300, 20 });
+	wieldSound.setBuffer(weaponSounds.loadSound("sword_unsheath.wav"));
+	swingSound.setBuffer(weaponSounds.loadSound("sword_swing01.wav"));
+	attackSound.setBuffer(weaponSounds.loadSound("sword_hit01.wav"));
+	reloadSound.setBuffer(weaponSounds.loadSound("sword_repair.wav"));
+	
+	weaponDura.setFont(font);
+	weaponDura.setCharacterSize(20);
+	weaponDura.setFillColor(sf::Color::Black);
+	weaponDura.setPosition({ 50, 200 });
 
-	damage = 25.0f;
-	speed = 5.0f;
+	if (attackSpeed < 5.0f)
+		attackSpeed = 5.0f;
+	else
+		attackSpeed = newSpeed;
+
+	damage = 10.0f;
 	type = false;
+
+	std::cout << "Melee Weapon created." << std::endl;
 }
 
 void Melee::update(float time, std::vector<Mob *> &mobs, sf::Vector2f pos) {
@@ -228,14 +259,13 @@ void Melee::update(float time, std::vector<Mob *> &mobs, sf::Vector2f pos) {
 
 	if (attacking) {
 		if (fabs(hbx) >= range)
-			speed = -fabs(speed);
+			attackSpeed = -fabs(attackSpeed);
 
 		if (fabs(hbx) <= 0) {
-			speed = fabs(speed);
+			attackSpeed = fabs(attackSpeed);
 			attacking = false;
 		}
-
-		hbx += speed;
+		hbx += attackSpeed;
 
 		if (faceRight) {
 			hbx = fabs(hbx);
@@ -249,11 +279,28 @@ void Melee::update(float time, std::vector<Mob *> &mobs, sf::Vector2f pos) {
 		hitbox.setSize({ hbx, hby });
 		for(Mob * mob : mobs)
 			if (mob->collide(hitbox) && !mob->dead()) {
+				randomSound = int(time * 10000) % 3;
+				if (randomSound == 0) {
+					attackSound.setBuffer(weaponSounds.loadSound("sword_hit01.wav"));
+					swingSound.setBuffer(weaponSounds.loadSound("sword_swing01.wav"));
+				}
+				else if (randomSound == 1) {
+					attackSound.setBuffer(weaponSounds.loadSound("sword_hit02.wav"));
+					swingSound.setBuffer(weaponSounds.loadSound("sword_swing02.wav"));
+				}
+				else {
+					attackSound.setBuffer(weaponSounds.loadSound("sword_hit03.wav"));
+					swingSound.setBuffer(weaponSounds.loadSound("sword_swing03.wav"));
+				}
+				std::cout << time << " - > " << randomSound << std::endl;
+				attackSound.play();
 				mob->changeHealth(-damage);
 				durability--;
 				attacking = false;
 			}
-		
+			else {
+				swingSound.play();
+			}
 	}
 	else {
 		hitbox.setSize({ 5.0f, hby });
@@ -263,17 +310,15 @@ void Melee::update(float time, std::vector<Mob *> &mobs, sf::Vector2f pos) {
 	std::ostringstream temp;
 	temp << durability;
 	if (durability > 0)
-		weaponHUD.setString(temp.str());
+		weaponDura.setString(temp.str());
 	else
-		weaponHUD.setString("Your sword is broken.");
-
-	//damage calculation
+		weaponDura.setString("Your sword is broken.");
 }
 
 void Melee::attack(sf::Vector2f pos, bool face){
 	faceRight = face;
 	if (!attacking && durability > 0 && delay <= 0) {
-		delay = attackSpeed;
+		delay = 0.2f;
 		attacking = true;
 	}
 }
@@ -282,12 +327,19 @@ bool Melee::isattacking() {
 	return attacking;
 }
 
+void Melee::repair(int newDura) {
+	reloadSound.play();
+	durability += newDura;
+	if (durability > maxDurability)
+		durability = maxDurability;
+}
+
 void Melee::draw(sf::RenderWindow &window){
 	window.draw(hitbox);
 }
 
 void Melee::drawHUD(sf::RenderWindow &window) {
 	Weapon::draw(window);
-	window.draw(weaponHUD);
+	window.draw(weaponDura);
 }
 
