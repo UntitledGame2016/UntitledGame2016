@@ -27,6 +27,7 @@ private:
 	sf::Text deathMessage;
 	sf::VertexArray healthCircle;
 	sf::CircleShape healthOverlay;
+	sf::RectangleShape selected;
 
 	double pi = 3.1415926535897932384;
 	double maxhp = 100;
@@ -36,6 +37,7 @@ private:
 	int gIndex;
 	std::vector<Guardian *> guardians;
 	float changeWindow = 0;
+	float damageWindow = 0;
 	bool alive = true;
 	bool god = false;
 public:
@@ -50,6 +52,7 @@ private:
 public:
 	Weapon* getWeapon();
 	void wield(Weapon * w);
+	float getDamage();
 private:
 	//Gravity
 	bool jumping = true;

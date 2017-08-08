@@ -17,21 +17,21 @@ Hero::Hero(sf::Vector2f newPos, TextureManager &textures) : row(0), allTextures(
 		std::cout << "Font not loaded" << std::endl;
 
 	name.setString("Hero");
-	name.setCharacterSize(18);
+	name.setCharacterSize(35);
 	name.setFont(nameFont);
 	name.setFillColor(sf::Color::White);
 	name.setOutlineColor(sf::Color::Black);
 	name.setOutlineThickness(2);
 	name.setStyle(sf::Text::Bold);
-	name.setPosition({ 50, 25 });
+	name.setPosition({ 50, 20 });
 
 	deathMessage.setFont(nameFont);
 	deathMessage.setFillColor(sf::Color::White);
 	deathMessage.setStyle(sf::Text::Bold);
-	deathMessage.setPosition({ 75.0f, 80.0f });
+	deathMessage.setPosition({ 75, 80 });
 
-	healthOverlay.setRadius(50);
-	healthOverlay.setPosition({ 50, 50 });
+	healthOverlay.setRadius(125);
+	healthOverlay.setPosition({ 35, 60 });
 	healthOverlay.setFillColor(sf::Color::Transparent);
 	healthOverlay.setOutlineColor(sf::Color::Black);
 	healthOverlay.setOutlineThickness(2);
@@ -41,16 +41,24 @@ Hero::Hero(sf::Vector2f newPos, TextureManager &textures) : row(0), allTextures(
 	double angle = -pi / 2;
 	for (size_t i = 0; i < maxhp; i++) {
 		//x = center.x + radius*cos(t) , y = center.y + radius*sin(t)
-		float x = 100.0f + 50.0f * std::cos(angle);
-		float y = 100.0f + 50.0f * std::sin(angle);
+		float x = healthOverlay.getPosition().x + healthOverlay.getRadius() + healthOverlay.getRadius()* std::cos(angle);
+		float y = healthOverlay.getPosition().y + healthOverlay.getRadius() + healthOverlay.getRadius()* std::sin(angle);
 		healthCircle[i].position = sf::Vector2f(x, y);
 		healthCircle[i].color = sf::Color::Red;
 		angle += pi / (maxhp / 2);
 	}
 
-	weapons.push_back(new Ranged("Gun", 10, { 0, 0, 64, 64 }, 500));
-	weapons.push_back(new Melee("Sword", 10, { 0, 0, 64, 64 }, 10.0f));
-	weapons.push_back(new Ranged("Machine Gun", 50, { 0, 0, 64,64 }, 750, 0.1f));
+	selected.setSize({ 127, 127 });
+	selected.setPosition({ 1440, 33 });
+	selected.setFillColor(sf::Color::Transparent);
+	selected.setOutlineThickness(2.0f);
+	selected.setOutlineColor(sf::Color::Yellow);
+
+	//name, durability, intrect, damage, attackSpeed, range
+	weapons.push_back(new Ranged("Gun", 10, { 0, 0, 64, 64 }, 5.0f, 0.25f, 500));
+	weapons.push_back(new Melee("Sword", 10, { 0, 0, 64, 64 }, 15.0f, 5.0f));
+	weapons.push_back(new Ranged("Machine Gun", 50, { 0, 0, 64,64 }, 10.0f, 0.1f, 750));
+	weapons[1]->showHitBox();
 	weapon = weapons[0];
 
 	guardians.push_back(new Estelle(*this, textures));
@@ -67,7 +75,9 @@ void Hero::drawHUD(sf::RenderWindow &window) {
 	window.draw(healthOverlay);
 	window.draw(deathMessage);
 	weapon->drawHUD(window);
-	guardians[gIndex]->draw(window);
+	for (Guardian * g : guardians)
+		g->draw(window);
+	window.draw(selected);
 }
 
 void Hero::draw(sf::RenderWindow &window) {
@@ -97,10 +107,10 @@ void Hero::update(float time, sf::Vector2f viewCoor, std::vector<Block *> blocks
 	view.x = viewCoor.x - (1920 / 2);
 	view.y = viewCoor.y - (1080 / 2);
 
-	sf::Vector2f dist = blocks[3]->update(time);
+	/*sf::Vector2f dist = blocks[3]->update(time);
 	if (curr != -1 && blocks[curr]->moving)
 		stop(dist);
-
+	*/
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
 		row = 8;
 		animation->changeSwitchTime(0.04);
@@ -209,8 +219,10 @@ void Hero::update(float time, sf::Vector2f viewCoor, std::vector<Block *> blocks
 		}
 	}
 
+	/*
 	if (curr != -1 && blocks[curr]->moving)
 		stop(dist);
+	*/
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
 		weapon->attack(getPosition(), faceRight);
@@ -233,20 +245,20 @@ void Hero::update(float time, sf::Vector2f viewCoor, std::vector<Block *> blocks
 	}
 
 	changeWindow += time;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) && changeWindow >= 0.15f) {
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) && changeWindow >= 0.12f) {
 		changeWindow = 0;
-		std::cout << "Current Guardian: " << guardians[gIndex]->getName() << std::endl;
 		if (gIndex < guardians.size() - 1)
 			gIndex++;
 		else
 			gIndex = 0;
-	} else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) && changeWindow >= 0.15f) {
-		changeWindow = 0;
 		std::cout << "Current Guardian: " << guardians[gIndex]->getName() << std::endl;
+	} else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) && changeWindow >= 0.12f) {
+		changeWindow = 0;
 		if (gIndex > 0)
 			gIndex--;
 		else
 			gIndex = guardians.size() - 1;
+		std::cout << "Current Guardian: " << guardians[gIndex]->getName() << std::endl;
 	}
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
@@ -263,13 +275,20 @@ void Hero::update(float time, sf::Vector2f viewCoor, std::vector<Block *> blocks
 
 	for (Mob * mob : mobs) 
 		if (mob->collide(hitbox) && !mob->dead()) {
-			changeHealth(-1);
+			damageWindow += time;
+			if (damageWindow > 0.15f) {
+				damageWindow = 0;
+				changeHealth(-mob->getDamage());
+			}
 			row = 3;
 		}
 
+	selected.setPosition({ 1440 + float(159 * gIndex), 33 });
+
 	for (Weapon * w : weapons)
 		w->update(time, mobs, getPosition());
-	guardians[gIndex]->update(time);
+	for (Guardian * g : guardians)
+		g->update(time);
 	animation->update(row, time, faceRight);
 	heroSprite.setTextureRect(animation->uvRect);
 }
@@ -277,6 +296,10 @@ void Hero::update(float time, sf::Vector2f viewCoor, std::vector<Block *> blocks
 void Hero::wield(Weapon * w) {
 	w->playWield();
 	weapon = w;
+}
+
+float Hero::getDamage() {
+	return weapon->getDamage();
 }
 
 Weapon* Hero::getWeapon() {
@@ -299,7 +322,8 @@ void Hero::changeHealth(double x) { //HUD
 		if (temp > maxhp)
 			temp = maxhp;
 		for (size_t i = hpindex; i < temp; i++)
-			healthCircle[i].position = sf::Vector2f(100.0f, 100.0f);
+			healthCircle[i].position = sf::Vector2f(healthOverlay.getPosition().x + healthOverlay.getRadius(), 
+				healthOverlay.getPosition().y + healthOverlay.getRadius());
 		hpindex = temp;
 	}
 	else if (x > 0) {
@@ -309,8 +333,8 @@ void Hero::changeHealth(double x) { //HUD
 		double angle = -pi / 2;
 		for (size_t i = 0; i < maxhp; i++) {
 			if (i >= temp && i < hpindex) {
-				float x = 100.0f + 50.0f * std::cos(angle);
-				float y = 100.0f + 50.0f * std::sin(angle);
+				float x = healthOverlay.getPosition().x + healthOverlay.getRadius() + healthOverlay.getRadius()* std::cos(angle);
+				float y = healthOverlay.getPosition().y + healthOverlay.getRadius() + healthOverlay.getRadius()* std::sin(angle);
 				healthCircle[i].position = sf::Vector2f(x, y);
 			}
 			angle += pi / (maxhp / 2);
@@ -405,24 +429,24 @@ void Estelle::heroActive() {
 	not her personality to want to hold back on great mechanics for the
 	hero especially if she has them. So, old mechanics will become obsolete.
 	*/
-	std::cout << "Estelle active" << std::endl;
-	if (active)
+
+	if (ready && !active) {
+		std::cout << "Estelle active" << std::endl;
+
+		//Healing
 		if (level == 0) {
+			cooldown = 3.0f;
 			heroptr->changeHealth(15);
-			active = false;
+			ready = false;
 		}
 		if (level == 1) {
-
+			effectWindow = 5;
 		}
 		if (level == 2) {
 
 		}
-		if (level == 3) {
-
-		}
-		if (level == 4) {
-
-		}
+		active = true;
+	}
 }
 
 void Aiden::heroActive() {
@@ -430,12 +454,24 @@ void Aiden::heroActive() {
 	Aiden's abilities are very inconsistent and troll, so they will
 	only become crazier and more erratic the higher you level him up.
 	*/
-	std::cout << "Aiden active" << std::endl;
-	if(active)
+	if (ready && !active) {
+		std::cout << "Aiden active" << std::endl;
+
+		//Speed up
 		if (level == 0) {
 			heroptr->changeMaxSpeed(20.0f);
-			active = false;
+			ready = false;
 		}
+		//
+		if (level == 1) {
+
+		}
+		//
+		if (level == 2) {
+
+		}
+		active = true;
+	}
 }
 
 void Evangeline::heroActive() {
@@ -443,15 +479,28 @@ void Evangeline::heroActive() {
 	Evangeline's more reserved and in control, so she will enhance
 	the hero's abilities the stronger you level her up as a reward.
 	*/
-	std::cout << "Evangeline active" << std::endl;
-	if(active)
+	if (ready && !active){
+		std::cout << "Evangeline active" << std::endl;
+
+		//Increase damage of current weapon
 		if (level == 0) {
+			cooldown = 0;
 			if (heroptr->getWeapon()->isRanged())
-				heroptr->getWeapon()->changeAttack(15.0f);
+				heroptr->getWeapon()->changeDamage(15.0f);
 			else
-				heroptr->getWeapon()->changeAttack(50.0f);
-			active = false;
+				heroptr->getWeapon()->changeDamage(50.0f);
+			ready = false;
 		}
+		//
+		if (level == 1) {
+
+		}
+		//
+		if (level == 2) {
+
+		}
+		active = true;
+	}
 }
 
 //Passive Abilities
@@ -459,18 +508,28 @@ void Estelle::update(float time) {
 	//Health regeneration
 	Guardian::update(time);
 	elapsed += time;
-	if (elapsed >= 5.0f) {
-		elapsed = 0.0f;
+	if (elapsed >= 5.0f && level == 0) {
+		elapsed -= 5.0f;
 		heroptr->changeHealth(2.0);
 	}
+
+	//Lifesteal
+	if (level == 1) {
+		if (effectWindow <= 5.0f) {
+
+		}
+	}
+
 }
 
 void Aiden::update(float time) {
 	Guardian::update(time);
 
+	//Aiden passive
 }
 
 void Evangeline::update(float time) {
 	Guardian::update(time);
 
+	//Evangeline passive
 }

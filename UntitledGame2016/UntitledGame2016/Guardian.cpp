@@ -4,18 +4,21 @@ Guardian::Guardian(Hero &hero, TextureManager &textures) : guardianTextures(&tex
 	level = 0;
 	loyalty = 0;
 	heroptr = &hero;
-	active = true;
 
 	nameFont.loadFromFile("fonts/arial.ttf");
-	nameText.setCharacterSize(30);
-	nameText.setFillColor(sf::Color::Black);
-	nameText.setPosition({ 400, 45 });
+	nameText.setCharacterSize(25);
+	nameText.setFillColor(sf::Color::White);
+	nameText.setOutlineColor(sf::Color::Black);
+	nameText.setOutlineThickness(2.0f);
 	nameText.setFont(nameFont);
 
-	icon.setPosition({ 200, 30 });
-	icon.setRadius(75.0f);
+	icon.setSize({ 127, 127 });
 	icon.setOutlineThickness(3.0f);
 	icon.setOutlineColor(sf::Color::Black);
+
+	cd.setSize({ 127, 127 });
+
+	//guardianSounds.addSound("sfx/");
 }
 
 std::string Guardian::getName() {
@@ -41,35 +44,52 @@ sf::Vector2f Guardian::getPosition() {
 
 void Guardian::draw(sf::RenderWindow &window) {
 	window.draw(icon);
+	window.draw(cd);
 	window.draw(nameText);
 }
 
 void Guardian::update(float time) {
-	if (!active) {
-		icon.setFillColor(sf::Color::Black);
+	if (active && !ready) {
+		elapsedcd += time;
+		cd.setFillColor(sf::Color(224, 224, 224, 150));
+		if (elapsedcd / cooldown < 1)
+			cd.setSize({ 127, 127 * (elapsedcd / cooldown) });
+		else {
+			elapsedcd -= cooldown;
+			active = false;
+			ready = true;
+		}
+	}
+	else {
+		cd.setFillColor(sf::Color::Transparent);
 	}
 }
 
 Estelle::Estelle(Hero &hero, TextureManager &textures) : Guardian(hero, textures) {
 	name = "Estelle";
 	nameText.setString(name);
-	guardianTexture = guardianTextures->loadTexture("Estelle_TB.png");
-	icon.setTexture(&guardianTexture);
-	//icon.setFillColor(sf::Color::Red);
+	icon.setTexture(&guardianTextures->loadTexture("Estelle_TB.png"));
+	icon.setPosition({ 1440, 33 });
+	cd.setPosition({ 1440, 33 });
+	nameText.setPosition({ 1469, 84});
+
+	//activeSound.setBuffer();
 }
 
 Aiden::Aiden(Hero &hero, TextureManager &textures) : Guardian(hero, textures) {
 	name = "Aiden";
 	nameText.setString(name);
-	guardianTexture = guardianTextures->loadTexture("Aiden_TB.png");
-	icon.setTexture(&guardianTexture);
-	//icon.setFillColor(sf::Color::Yellow);
+	icon.setTexture(&guardianTextures->loadTexture("Aiden_TB.png"));
+	icon.setPosition({ 1599, 33 });
+	cd.setPosition({ 1599, 33 });
+	nameText.setPosition({ 1631, 84 });
 }
 
 Evangeline::Evangeline(Hero &hero, TextureManager &textures) : Guardian(hero, textures) {
 	name = "Evangeline";
 	nameText.setString(name);
-	guardianTexture = guardianTextures->loadTexture("Evangeline_TB.png");
-	icon.setTexture(&guardianTexture);
-	//icon.setFillColor(sf::Color::Green);
+	icon.setTexture(&guardianTextures->loadTexture("Evangeline_TB.png"));
+	icon.setPosition({ 1758, 33 });
+	cd.setPosition({ 1758, 33 });
+	nameText.setPosition({ 1755, 84 });
 }

@@ -1,9 +1,10 @@
 #include "Mobs.h"
 
-Mob::Mob(TextureManager &textures, sf::Vector2f newpos, int health) : health(health), maxHealth(health) {
-	hitbox.setSize({ 64, 64 });
+Mob::Mob(TextureManager &textures, sf::Vector2f newpos, int health, float newDamage) : 
+	health(health), maxHealth(health), damage(newDamage) {
+	hitbox.setSize({ 256, 256 });
+	hitbox.setFillColor(sf::Color::Transparent);
 	hitbox.setPosition(newpos);
-	hitbox.setFillColor(sf::Color::Green);
 
 	barLength = hitbox.getSize().x*(3 / 2);
 	healthbar.setSize({ barLength, 10 });
@@ -11,13 +12,13 @@ Mob::Mob(TextureManager &textures, sf::Vector2f newpos, int health) : health(hea
 	healthbar.setOutlineColor(sf::Color::Black);
 	healthbar.setOutlineThickness(2);
 
-	texture = textures.loadTexture("weapons_spritesheet.png");
+	texture = textures.loadTexture("mob.png");
 	sprite.setPosition(hitbox.getPosition());
 	sprite.setTexture(texture);
 
 	mobSounds.addSound("mob_death.wav");
 	mobDeath.setBuffer(mobSounds.loadSound("mob_death.wav"));
-
+	mobDeath.setVolume(75);
 }
 
 void Mob::setPosition(sf::Vector2f pos) {
@@ -35,7 +36,7 @@ void Mob::draw(sf::RenderWindow &window) {
 }
 
 bool Mob::collide(sf::Sprite &obj) {
-	return Collision::PixelPerfectTest(sprite, obj);
+	return Collision::BoundingBoxTest(sprite, obj);
 }
 
 bool Mob::collide(sf::RectangleShape &obj) {
@@ -43,6 +44,10 @@ bool Mob::collide(sf::RectangleShape &obj) {
 }
 
 void Mob::update(float time) {
+}
+
+float Mob::getDamage() {
+	return damage;
 }
 
 void Mob::changeHealth(const int hp) {

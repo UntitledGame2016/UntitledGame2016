@@ -12,17 +12,23 @@ class Guardian {
 	Animation * animation;
 protected:
 	Hero * heroptr;
+	TextureManager * guardianTextures;
+	sf::Sprite guardianSprite;
+	AudioManager guardianSounds;
+	sf::Sound activeSound;
 	int level;
 	int loyalty;
-	bool active;
+	bool active = false;
+	bool ready = true;
+	float effectWindow = 0;
+	float cooldown = 0;
 	float elapsed = 0;
+	float elapsedcd = 0;
 	sf::Text nameText;
 	sf::Font nameFont;
+	sf::RectangleShape icon;
+	sf::RectangleShape cd;
 	std::string name;
-	sf::CircleShape icon;
-	TextureManager * guardianTextures;
-	sf::Texture guardianTexture;
-	sf::Sprite guardianSprite;
 public:
 	Guardian(Hero &hero, TextureManager &textures);
 	std::string getName();

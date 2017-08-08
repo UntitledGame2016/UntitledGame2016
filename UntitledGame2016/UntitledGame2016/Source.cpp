@@ -22,15 +22,9 @@ int main() {
 	//Time
 	sf::Clock cl;
 
-	//Objects (size, position) 
-	sf::RectangleShape background;
-	background.setFillColor(sf::Color::Yellow);
-	background.setSize({ width*5, height*5 });
-
 	//Textures
 	TextureManager textures;
 	textures.addTexture("sample_spritesheet.png");
-	textures.addTexture("weapons_spritesheet.png");
 	textures.addTexture("sample_spritesheet.png");
 	textures.addTexture("box.png");
 	textures.addTexture("box2.png");
@@ -39,7 +33,13 @@ int main() {
 	textures.addTexture("Aiden_TB.png");
 	textures.addTexture("Evangeline_TB.png");
 	textures.addTexture("Estelle_TB.png");
+	textures.addTexture("bg.jpg");
 
+	//Background
+	sf::RectangleShape background;
+	background.setTexture(&textures.loadTexture("bg.jpg"));
+	background.setSize({ 10000, height});
+	
 	//Hero and Weapons 
 	Hero hero({ 500, 786 }, textures);
 	//hero.showHitBox();
@@ -48,12 +48,12 @@ int main() {
 	//Mobs
 	std::cout << "Spawning mobs..." << std::endl;
 	std::vector<Mob *> mobs;
-	mobs.push_back(new Mob(textures, { 700, 834 }, 100));
-	mobs.push_back(new Mob(textures, { 400, 834 }, 100));
-	mobs.push_back(new Mob(textures, { 1500, 834 }, 100));
-	mobs.push_back(new Mob(textures, { 1000, 834 }, 100));
-	mobs.push_back(new Mob(textures, { 300, 934 }, 100));
-	mobs.push_back(new Mob(textures, { 1800, 834 }, 100));
+	mobs.push_back(new Mob(textures, { 5000, 744 }, 100));
+	mobs.push_back(new Mob(textures, { 4000, 744 }, 100));
+	mobs.push_back(new Mob(textures, { 1500, 644 }, 100));
+	mobs.push_back(new Mob(textures, { 1000, 644 }, 100));
+	mobs.push_back(new Mob(textures, { 300, 744 }, 100));
+	mobs.push_back(new Mob(textures, { 1800, 644 }, 100, 10.0f));
 	std::cout << "Mobs spawned." << std::endl;
 
 	//Level design
@@ -65,10 +65,10 @@ int main() {
 	blockScript.push_back(std::pair<sf::Vector2u, float>({ 1000, 300 }, 5.0f));
 	blockScript.push_back(std::pair<sf::Vector2u, float>({ 100, 900 }, 0.8f));
 
-	blocks.push_back(new Block({ 0, 1000 } , { 10000, 64 }, "boxSprite.png"));
+	blocks.push_back(new Block({ 0, 1000 } , { 15000, 64 }, "grass.png"));
 	blocks.push_back(new Block({ 0, 850 }, { 100, 100 }));
-	blocks.push_back(new Block({ 1040, 900 }, { 1000, 64 }, "boxSprite.png"));	
-	blocks.push_back(new Block({ 500, 1000 }, { 64, 64 }, "boxSprite.png", &blockScript));
+	blocks.push_back(new Block({ 1040, 900 }, { 1000, 64 }, "grass.png"));	
+	//blocks.push_back(new Block({ 500, 1000 }, { 64, 64 }, "boxSprite.png", &blockScript));
 
 	sf::CircleShape s;
 	sf::Texture d;
@@ -83,10 +83,10 @@ int main() {
 	float dx, dy = 5.0f;
 	sf::Time animationdelay = sf::seconds(5.0f);
 	float viewdx = 0;
-	sf::View view(sf::FloatRect({ 0, 0, width, height }));
+	sf::View playerView(sf::FloatRect({ 0, 0, width, height }));
 	std::cout << "Level complete." << std::endl;
 
-	hero.godMode(true);
+	hero.godMode(false);
 
 	sf::Music music;
 	if (!music.openFromFile("songs/level01.ogg"))
@@ -94,7 +94,16 @@ int main() {
 	music.setLoop(true);
 	music.setVolume(75);
 	music.play();
-	music.setPlayingOffset(sf::seconds(62));
+	//music.setPlayingOffset(sf::seconds(62));
+
+	sf::Text instructions;
+	instructions.setString("Controls: \nWASD - Movement\nLShift - Run\nA - Attack\nNUM1-3 - Weapons\nR - Reload\nS/D - Toggle Guardian\nSPACE - Guardian Active");
+	instructions.setPosition({ 750, 25 });
+	sf::Font font;
+	font.loadFromFile("fonts/arial.ttf");
+	instructions.setFont(font);
+	instructions.setFillColor(sf::Color::Black);
+	instructions.setCharacterSize(25);
 
 	while (window.isOpen()) {
 		// -- Events -- 
@@ -129,7 +138,7 @@ int main() {
 
 	//Update
 		if (!hero.dead())
-			hero.update(cl.getElapsedTime().asSeconds(), view.getCenter(), blocks, mobs);
+			hero.update(cl.getElapsedTime().asSeconds(), playerView.getCenter(), blocks, mobs);
 		else
 			hero.deathAnimation(cl.getElapsedTime().asSeconds());
 		//blocks[3]->update(cl.getElapsedTime().asSeconds());
@@ -139,23 +148,23 @@ int main() {
 // -- Draw --
 
 		window.clear();
-		window.draw(background);
 
 		//std::cout << view.getCenter().x << " " << view.getCenter().y << std::endl;
-		if (hero.getPosition().x > (view.getCenter().x + (width / 12))) {
-			viewdx = hero.getPosition().x - (view.getCenter().x + (width / 12));
-			view.setCenter({ viewdx + view.getCenter().x, height / 2 });
+		if (hero.getPosition().x > (playerView.getCenter().x + (width / 12))) {
+			viewdx = hero.getPosition().x - (playerView.getCenter().x + (width / 12));
+			playerView.setCenter({ viewdx + playerView.getCenter().x, height / 2 });
 		}
-		else if (hero.getPosition().x < (view.getCenter().x - (width / 12))) {
-			viewdx = (view.getCenter().x - (width / 12)) - hero.getPosition().x;
-			if(view.getCenter().x - viewdx - (width / 2) > 0)
-				view.setCenter({ view.getCenter().x - viewdx, height / 2 });
+		else if (hero.getPosition().x < (playerView.getCenter().x - (width / 12))) {
+			viewdx = (playerView.getCenter().x - (width / 12)) - hero.getPosition().x;
+			if(playerView.getCenter().x - viewdx - (width / 2) > 0)
+				playerView.setCenter({ playerView.getCenter().x - viewdx, height / 2 });
 			else
-				view.setCenter({ width / 2, height / 2 });
+				playerView.setCenter({ width / 2, height / 2 });
 		}
-		window.setView(view);
+		window.setView(playerView);
 
 		//Environment
+		window.draw(background);
 		for (Block * b : blocks)
 			b->draw(window);
 		window.draw(s);
@@ -168,10 +177,12 @@ int main() {
 			a->draw(window);
 		}
 
-		sf::View view2(window.getDefaultView());
-		window.setView(view2);
+		sf::View hudView(window.getDefaultView());
+		window.setView(hudView);
 		hero.drawHUD(window);
 		
+		window.draw(instructions);
+
 		window.display();
 	}
 	return 0;

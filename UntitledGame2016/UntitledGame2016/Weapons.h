@@ -52,16 +52,18 @@ protected:
 	sf::Font font;
 public:
 	Weapon();
-	Weapon(std::string name, int durability, sf::IntRect texture = { 0, 0, 64, 64 });
+	Weapon(std::string name, int durability, float newDamage, sf::IntRect texture = { 0, 0, 64, 64 });
 	virtual void attack(sf::Vector2f pos, bool faceRight) {};
 	virtual void update(float time, std::vector<Mob *> &mobs, sf::Vector2f pos) {};
 	virtual void draw(sf::RenderWindow &window);
 	virtual void drawHUD(sf::RenderWindow &window);
 	virtual void reload(int newBullets) {};
 	virtual void repair(int newDura) {};
+	virtual void showHitBox() {};
 	virtual bool isattacking() { return false; };
-	virtual void changeAttack(float newDmg);
-	virtual bool isRanged();
+	void changeDamage(float newDmg);
+	bool isRanged();
+	float getDamage();
 };
 
 class Ranged : public Weapon{
@@ -71,10 +73,9 @@ class Ranged : public Weapon{
 	float firerate;
 	float delay = 0;
 	float bulletRange;
-
 	sf::Text weaponDura;
 public:
-	Ranged(std::string name, int durability, sf::IntRect textureRect, const float range = 1000.0f, const float firerate = 0.45f);
+	Ranged(std::string name, int durability, sf::IntRect textureRect, float newDamage = 5.0f, const float firerate = 0.45f, const float range = 1000.0f);
 	void draw(sf::RenderWindow &window);
 	void drawHUD(sf::RenderWindow &window);
 	void attack(sf::Vector2f pos, bool faceRight);
@@ -91,11 +92,12 @@ class Melee : public Weapon {
 	sf::Text weaponDura;
 public:
 	Melee();
-	Melee(std::string name, int durability, sf::IntRect textureRect, float newSpeed = 0.45f, float range = 50.0f);
+	Melee(std::string name, int durability, sf::IntRect textureRect, float newDamage = 10.0f, float newSpeed = 0.5f, float range = 50.0f);
 	void update(float time, std::vector<Mob *> &mobs, sf::Vector2f pos);
 	void attack(sf::Vector2f pos, bool faceRight);
 	void draw(sf::RenderWindow &window);
 	void repair(int newDura);
+	void showHitBox();
 	void drawHUD(sf::RenderWindow &window);
 	bool isattacking();
 };
